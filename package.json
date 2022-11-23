@@ -1,0 +1,27 @@
+{
+  "name": "chamber",
+  "version": "1.0.0",
+  "description": "command line tool to manage and swap ERC20 tokens",
+  "main": "chamber.js",
+  "bin": "./bin/chamber.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toogroovy/chamber.git"
+  },
+  "author": "toogroovy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/toogroovy/chamber/issues"
+  },
+  "homepage": "https://github.com/toogroovy/chamber#readme",
+  "dependencies": {
+    "axios": "^1.2.0",
+    "colors": "^1.4.0",
+    "commander": "^9.4.1",
+    "configstore": "^6.0.0",
+    "ethers": "^5.7.2"
+  }
+}
