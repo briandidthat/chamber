@@ -5,7 +5,7 @@ const fetch = {
         const response = await PriceFetcher.getPrice(ticker);
         console.log(response);
     },
-    async getQuote({sellToken, buyToken, amount}) {
+    async getQuote(sellToken, buyToken, amount) {
         console.log(sellToken, buyToken, amount)
         const quote = await PriceFetcher.findBestQoute(sellToken, buyToken, amount);
         console.log(quote);
