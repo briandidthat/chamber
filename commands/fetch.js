@@ -7,9 +7,9 @@ const fetch = {
     },
     async getQuote(sellToken, buyToken, amount) {
         console.log(sellToken, buyToken, amount)
-        const quote = await PriceFetcher.findBestQoute(sellToken, buyToken, amount);
+        const quote = await PriceFetcher.findBestQuote(sellToken, buyToken, amount);
         console.log(quote);
     }
 }
 
-module.exports = {fetch};
+module.exports = fetch;
