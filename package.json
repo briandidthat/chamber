@@ -2,7 +2,7 @@
   "name": "chamber",
   "version": "1.0.0",
   "description": "command line tool to manage and swap ERC20 tokens",
-  "main": "chamber.js",
+  "main": "index.js",
   "bin": "./bin/chamber.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
