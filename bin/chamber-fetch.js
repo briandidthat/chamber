@@ -1,5 +1,5 @@
 const {program} = require("commander");
-const fetch = require("../commands/fetch")
+const fetch = require("../commands/fetch");
 
 program
     .command("price")

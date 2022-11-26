@@ -16,4 +16,14 @@ const getTokenAddress = (ticker) => {
     throw new Error("that token is not supported");
 }
 
-module.exports = {getTokenAddress};
+function createQueryString(url, params) {
+    return (
+        url +
+        Object.entries(params)
+            .map(([k, v]) => `${k}=${v}`)
+            .join("&")
+    );
+}
+
+
+module.exports = {getTokenAddress, createQueryString};
