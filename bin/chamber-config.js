@@ -11,18 +11,18 @@ program
 program
     .command("get")
     .description("get an entry using key")
-    .requiredOption("-k, --k", "key name you are looking for")
-    .action(({key}) => keyCommands.get(key));
+    .requiredOption("-k, --key", "key name you are looking for")
+    .action(({key}) => configCommands.get(key));
 
 program
     .command("delete")
     .description("remove an entry from config store")
     .requiredOption("-k, --key", "key name of entry we'll delete")
-    .action(({key}) => keyCommands.remove(key));
+    .action(({key}) => configCommands.remove(key));
 
 program
     .command("clear")
     .description("clear all env entries")
-    .action(() => keyCommands.clear());
+    .action(() => configCommands.clear());
 
 program.parse(process.argv)
