@@ -27,7 +27,7 @@ const getTokenAddress = (ticker) => {
 }
 
 const getNetworkUrl = (network) => {
-    const networkUrl = NETWORK_MAP[network];
+    const networkUrl = NETWORK_MAP[network.toLowerCase()];
     if (!networkUrl) throw new Error("provided network is not supported");
     return networkUrl;
 }
