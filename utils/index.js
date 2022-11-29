@@ -21,33 +21,19 @@ const NETWORK_MAP = {
 }
 
 const getTokenAddress = (ticker) => {
-    ticker = ticker.toUpperCase();
-    for (let entry of Object.entries(TOKEN_MAP)) {
-        let [key, val] = entry;
-        if (ticker === key) return val;
-    }
-    throw new Error("that token is not supported");
+    const address = TOKEN_MAP[ticker.toUpperCase()];
+    if (!ticker) throw new Error("that token is not supported");
+    return address;
 }
 
 const getNetworkUrl = (network) => {
-    for (let entry of Object.entries(NETWORK_MAP)) {
-        let [key, val] = entry;
-        if (network === key) return val;
-    }
-    throw new Error("provided network is not supported");
+    const networkUrl = NETWORK_MAP[network];
+    if (!networkUrl) throw new Error("provided network is not supported");
+    return networkUrl;
 }
 
-function createQueryString(url, params) {
-    return (
-        url +
-        Object.entries(params)
-            .map(([k, v]) => `${k}=${v}`)
-            .join("&")
-    );
-}
-
-function sortQuotesByExecution(quotes) {
-
+function createQueryString(url, path, params) {
+    return url + path + "?" + (new URLSearchParams(params)).toString();
 }
 
 
