@@ -21,7 +21,7 @@ const NETWORK_MAP = {
 }
 
 const getTokenAddress = (ticker) => {
-    const address = TOKEN_MAP[ticker.toUpperCase()];
+    const address = TOKEN_MAP[ticker];
     if (!ticker) throw new Error("that token is not supported");
     return address;
 }
@@ -35,6 +35,5 @@ const getNetworkUrl = (network) => {
 function createQueryString(url, path, params) {
     return url + path + "?" + (new URLSearchParams(params)).toString();
 }
-
 
 module.exports = {createQueryString, getNetworkUrl, getTokenAddress, LIQUIDITY_SOURCES};
