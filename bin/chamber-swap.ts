@@ -1,5 +1,6 @@
-const { program } = require("commander");
-const swapCommands = require("../commands/swap");
+import { program } from "commander";
+import swapCommands from "../commands/swap";
+import { SwapInfo } from "../lib/types";
 
 program
   .command("quote")
@@ -10,7 +11,7 @@ program
     "-a, --amount <number>",
     "amount of sell token you'll be selling"
   )
-  .action(({ sellToken, buyToken, amount }) =>
+  .action(({ sellToken, buyToken, amount }: SwapInfo) =>
     swapCommands.findBestQuote(sellToken, buyToken, amount)
   );
 
@@ -24,7 +25,7 @@ program
     "amount of sell token you'll be selling"
   )
   .requiredOption("-n --network <network>", "network to perform the swap on")
-  .action(({ sellToken, buyToken, amount, network }) =>
+  .action(({ sellToken, buyToken, amount, network }: SwapInfo) =>
     console.log(
       `sellToken=${sellToken}, buyToken=${buyToken}, amount=${amount}, network=${network}`
     )

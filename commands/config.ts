@@ -1,13 +1,13 @@
-const keyManager = require("../lib/KeyManager");
+import keyManager from "../lib/KeyManager";
 
 const configCommands = {
-  set(key, value) {
+  set(key: string, value: string) {
     console.log(keyManager.set(key, value));
   },
-  get(key) {
+  get(key: string) {
     console.log(keyManager.get(key));
   },
-  remove(key) {
+  remove(key: string) {
     console.log(keyManager.remove(key));
   },
   clear() {
@@ -16,4 +16,4 @@ const configCommands = {
   },
 };
 
-module.exports = configCommands;
+export default configCommands;

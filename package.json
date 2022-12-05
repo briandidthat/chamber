@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "command line tool to manage and swap ERC20 tokens",
   "main": "index.js",
-  "bin": "./bin/chamber.js",
+  "bin": "./dist/bin/chamber.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc"
   },
   "repository": {
     "type": "git",
@@ -22,6 +24,12 @@
     "colors": "^1.4.0",
     "commander": "^9.4.1",
     "configstore": "^5.0.1",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "typescript": "^4.9.3"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/configstore": "^6.0.0",
+    "@types/node": "^18.11.10"
   }
 }
