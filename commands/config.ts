@@ -1,8 +1,9 @@
 import keyManager from "../lib/KeyManager";
+import colors from "colors";
 
 const configCommands = {
-  set(key: string, value: string) {
-    console.log(keyManager.set(key, value));
+  set(key: string, val: string) {
+    console.log(keyManager.set(key, val));
   },
   get(key: string) {
     console.log(keyManager.get(key));
@@ -12,7 +13,7 @@ const configCommands = {
   },
   clear() {
     keyManager.clear();
-    console.log("Config Cleared");
+    console.log("Config Cleared".green);
   },
 };
 

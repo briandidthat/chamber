@@ -7,7 +7,7 @@ import {
   getNetworkUrl,
   LIQUIDITY_SOURCES,
 } from "../utils";
-import { Quote } from "./types";
+import { ParaswapTxRequest, ParaswapTxResponse, Quote } from "./types";
 
 class Swapper {
   static oneInchUrl: string = "https://api.1inch.io/v5.0/1";
@@ -39,7 +39,7 @@ class Swapper {
     signer: string
   ) {
     try {
-      const response = await axios.post(
+      const response = await axios.post<ParaswapTxRequest, ParaswapTxResponse>(
         `${this.paraswapUrl}/transactions/${networkId}`,
         {
           srcToken: quote.priceRoute.srcToken,
