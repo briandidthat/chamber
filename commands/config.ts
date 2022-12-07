@@ -1,8 +1,8 @@
 import keyManager from "../lib/KeyManager";
 
 const configCommands = {
-  set(key: string, value: string) {
-    console.log(keyManager.set(key, value));
+  set(key: string, val: string) {
+    console.log(keyManager.set(key, val));
   },
   get(key: string) {
     console.log(keyManager.get(key));

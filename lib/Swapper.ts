@@ -6,8 +6,9 @@ import {
   createQueryString,
   getNetworkUrl,
   LIQUIDITY_SOURCES,
+  fromBn,
 } from "../utils";
-import { Quote } from "./types";
+import { ParaswapTxRequest, ParaswapTxResponse, Quote } from "./types";
 
 class Swapper {
   static oneInchUrl: string = "https://api.1inch.io/v5.0/1";
@@ -39,7 +40,7 @@ class Swapper {
     signer: string
   ) {
     try {
-      const response = await axios.post(
+      const response = await axios.post<ParaswapTxRequest, ParaswapTxResponse>(
         `${this.paraswapUrl}/transactions/${networkId}`,
         {
           srcToken: quote.priceRoute.srcToken,
@@ -106,10 +107,6 @@ class Swapper {
       const oneInchAmount = oneInchQoute.toTokenAmount;
       const paraswapAmount = paraswapQoute.priceRoute.destAmount;
 
-      console.log("ZeroX Amount: " + zeroXAmount);
-      console.log("OneInch Amount: " + oneInchAmount);
-      console.log("Paraswap Amount: " + paraswapAmount);
-
       // sort the quotes by the expected output
       const sorted: Quote[] = [
         {
@@ -129,7 +126,27 @@ class Swapper {
         },
       ].sort((a, b) => b.expectedOutput - a.expectedOutput);
 
-      return sorted[0];
+      const [first, second, third] = sorted;
+
+      console.log(
+        `Best Source: ${first.liquiditySource}, Expected Amount: ${fromBn(
+          first.expectedOutput,
+          18
+        )}`
+      );
+      console.log(
+        `Second Best Source: ${
+          second.liquiditySource
+        }, Expected Amount: ${fromBn(second.expectedOutput, 18)}`
+      );
+      console.log(
+        `Third Best Source: ${third.liquiditySource}, Expected Amount: ${fromBn(
+          third.expectedOutput,
+          18
+        )}`
+      );
+
+      return first;
     } catch (err) {
       console.error(err);
     }

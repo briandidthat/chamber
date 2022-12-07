@@ -2,7 +2,7 @@
 
 export type KeyPair = {
   key: string;
-  value: string;
+  val: string;
 };
 
 // PRICE TYPES
@@ -29,4 +29,22 @@ export type SwapInfo = {
   buyToken: string;
   amount: string;
   network?: string;
+};
+
+export type ParaswapTxRequest = {
+  srcToken: string;
+  destToken: string;
+  destAmount: string;
+  priceRoute: any;
+  userAddress: string;
+};
+
+export type ParaswapTxResponse = {
+  from: string;
+  to: string;
+  value: string;
+  data: string;
+  gasPrice: string;
+  gas: string;
+  chainId: number;
 };

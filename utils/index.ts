@@ -1,4 +1,5 @@
 import keyManager from "../lib/KeyManager";
+import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
 
 export const TOKEN_MAP: Record<string, string> = {
   ETH: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
@@ -32,6 +33,13 @@ export const getNetworkUrl = (network: string) => {
   return networkUrl;
 };
 
+/**
+ * Creates a query string using the given parameters
+ * @param url the base url for the request
+ * @param path the target path for the request
+ * @param params the parameters for the query string
+ * @returns string
+ */
 export const createQueryString = (
   url: string,
   path: string,
@@ -39,3 +47,26 @@ export const createQueryString = (
 ) => {
   return url + path + "?" + new URLSearchParams(params).toString();
 };
+
+/**
+ * Convert a big number with a custom number of decimals to a stringified fixed-point number
+ * @param x the big number we will be parsing
+ * @param decimals the number of decimal places for this big number
+ * @returns string
+ */
+export function fromBn(x: BigNumber, decimals: number = 18): string {
+  if (x === undefined) {
+    throw new Error("Input must not be undefined");
+  }
+
+  if (decimals < 1 || decimals > 77) {
+    throw new Error("Decimals must be between 1 and 77");
+  }
+
+  const result: string = FixedNumber.fromValue(
+    x,
+    decimals,
+    `fixed256x${decimals}`
+  ).toString();
+  return result.replace(/.0$/, "");
+}
