@@ -1,5 +1,4 @@
 import keyManager from "../lib/KeyManager";
-import colors from "colors";
 
 const configCommands = {
   set(key: string, val: string) {
@@ -13,7 +12,7 @@ const configCommands = {
   },
   clear() {
     keyManager.clear();
-    console.log("Config Cleared".green);
+    console.log("Config Cleared");
   },
 };
 
