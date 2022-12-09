@@ -1,8 +1,10 @@
 import axios from "axios";
+import { ethers, providers } from "ethers";
 import { createQueryString } from "../utils";
+import keyManager from "./KeyManager";
 import { BinanceResponse } from "./types";
 
-class PriceFetcher {
+class Fetcher {
   static binanceUrl = "https://api1.binance.com/api/v3/ticker/";
 
   static async getPrice(ticker: string) {
@@ -16,6 +18,15 @@ class PriceFetcher {
       console.error(err);
     }
   }
+
+  static async getBalance() {
+    const alchemyUrl = keyManager.get("ALCHEMY_RPC_URL");
+    const privateKey = keyManager.get("PRIVATE_KEY");
+    const provider = new providers.JsonRpcProvider(alchemyUrl);
+    const wallet = new ethers.Wallet(privateKey, provider);
+
+    return await provider.getBalance(wallet.address);
+  }
 }
 
-export default PriceFetcher;
+export default Fetcher;

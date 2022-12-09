@@ -22,7 +22,7 @@ export const NETWORK_MAP: Record<string, string> = {
 };
 
 export const getTokenAddress = (ticker: string) => {
-  const address = TOKEN_MAP[ticker.toUpperCase()];
+  const address = TOKEN_MAP[ticker];
   if (!ticker) throw new Error("that token is not supported");
   return address;
 };
