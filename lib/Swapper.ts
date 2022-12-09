@@ -88,7 +88,6 @@ class Swapper {
       );
       const sell = sellToken.toUpperCase();
       const buy = buyToken.toUpperCase();
-
       const sellTokenAddress = getTokenAddress(sell);
       const buyTokenAddress = getTokenAddress(buy);
 
