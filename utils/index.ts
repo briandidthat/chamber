@@ -11,7 +11,8 @@ export const TOKEN_MAP: Record<string, string> = {
 };
 
 export const LIQUIDITY_SOURCES: Record<string, string> = {
-  PARASWAP: "paraswap",
+  COWSWAP: "Cowswap",
+  PARASWAP: "Paraswap",
   ZERO_X: "0x",
   ONE_INCH: "1inch",
 };
@@ -43,7 +44,7 @@ export const getNetworkUrl = (network: string) => {
 export const createQueryString = (
   url: string,
   path: string,
-  params: Record<string, string>
+  params: Record<string, any>
 ) => {
   return url + path + "?" + new URLSearchParams(params).toString();
 };

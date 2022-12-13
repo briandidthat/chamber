@@ -48,3 +48,15 @@ export type ParaswapTxResponse = {
   gas: string;
   chainId: number;
 };
+
+export function createQuote(
+  liquiditySource: string,
+  expectedOutput: string,
+  response: any
+): Quote {
+  return {
+    liquiditySource: liquiditySource,
+    expectedOutput: expectedOutput,
+    response: response,
+  };
+}

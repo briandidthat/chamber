@@ -8,9 +8,15 @@ import {
   LIQUIDITY_SOURCES,
   fromBn,
 } from "../utils";
-import { ParaswapTxRequest, ParaswapTxResponse, Quote } from "./types";
+import {
+  createQuote,
+  ParaswapTxRequest,
+  ParaswapTxResponse,
+  Quote,
+} from "./types";
 
 class Swapper {
+  static cowSwapUrl = "https://api.cow.fi/mainnet/api/v1";
   static oneInchUrl: string = "https://api.1inch.io/v5.0/1";
   static zeroXUrl: string = "https://api.0x.org/swap/v1";
   static paraswapUrl: string = "https://apiv5.paraswap.io";
@@ -86,66 +92,19 @@ class Swapper {
       console.log(
         `Finding best quote for ${sellToken} -> ${buyToken} swap. Sell amount: ${amount}`
       );
-      const sell = sellToken.toUpperCase();
-      const buy = buyToken.toUpperCase();
-      const sellTokenAddress = getTokenAddress(sell);
-      const buyTokenAddress = getTokenAddress(buy);
-
-      const sellAmount: BigNumber =
-        sell === "USDC"
-          ? ethers.utils.parseUnits(amount, "mwei")
-          : ethers.utils.parseEther(amount);
-
-      const [zeroXQoute, oneInchQoute, paraswapQoute] = await Promise.all([
-        this.fetchOxQuote(sell, buy, sellAmount),
-        this.fetchOneInchQoute(sellTokenAddress, buyTokenAddress, sellAmount),
-        this.fetchParaswapQoute(sellTokenAddress, buyTokenAddress, sellAmount),
-      ]);
-
-      const zeroXAmount = zeroXQoute.buyAmount;
-      const oneInchAmount = oneInchQoute.toTokenAmount;
-      const paraswapAmount = paraswapQoute.priceRoute.destAmount;
-
-      // sort the quotes by the expected output
-      const sorted: Quote[] = [
-        {
-          liquiditySource: LIQUIDITY_SOURCES.ZERO_X,
-          expectedOutput: zeroXAmount,
-          response: zeroXQoute,
-        },
-        {
-          liquiditySource: LIQUIDITY_SOURCES.ONE_INCH,
-          expectedOutput: oneInchAmount,
-          response: oneInchQoute,
-        },
-        {
-          liquiditySource: LIQUIDITY_SOURCES.PARASWAP,
-          expectedOutput: paraswapAmount,
-          response: paraswapQoute,
-        },
-      ].sort((a, b) => b.expectedOutput - a.expectedOutput);
-
-      const [first, second, third] = sorted;
-
-      console.log(
-        `Best Source: ${first.liquiditySource}, Expected Amount: ${fromBn(
-          first.expectedOutput,
-          18
-        )}`
-      );
-      console.log(
-        `Second Best Source: ${
-          second.liquiditySource
-        }, Expected Amount: ${fromBn(second.expectedOutput, 18)}`
-      );
-      console.log(
-        `Third Best Source: ${third.liquiditySource}, Expected Amount: ${fromBn(
-          third.expectedOutput,
-          18
-        )}`
+      const quotes = await this.fetchAllQuotesForSwap(
+        sellToken,
+        buyToken,
+        amount
       );
 
-      return first;
+      quotes.map((val, index) => {
+        console.log(
+          `${index}: ${val.liquiditySource}. Expected ouput: ${val.expectedOutput}`
+        );
+      });
+
+      return quotes[0];
     } catch (err) {
       console.error(err);
     }
@@ -165,6 +124,29 @@ class Swapper {
         })
       );
       return zeroXQoute.data;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  static async fetchCowswapQuote(
+    sellToken: string,
+    buyToken: string,
+    amount: BigNumber
+  ) {
+    const signer = keyManager.get("SIGNER");
+    try {
+      const cowswapQoute = await axios.post(this.cowSwapUrl + "/quote", {
+        sellToken: sellToken,
+        buyToken: buyToken,
+        from: signer,
+        receiver: signer,
+        partiallyFillable: false,
+        kind: "sell",
+        sellAmountBeforeFee: amount.toString(),
+      });
+
+      return cowswapQoute.data;
     } catch (err) {
       console.error(err);
     }
@@ -208,6 +190,53 @@ class Swapper {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  static async fetchAllQuotesForSwap(
+    sellToken: string,
+    buyToken: string,
+    amount: string
+  ) {
+    const sell = sellToken.toUpperCase();
+    const buy = buyToken.toUpperCase();
+    const sellTokenAddress = getTokenAddress(sell);
+    const buyTokenAddress = getTokenAddress(buy);
+
+    try {
+      const sellAmount: BigNumber =
+        sell === "USDC"
+          ? ethers.utils.parseUnits(amount, "mwei")
+          : ethers.utils.parseEther(amount);
+
+      const [zeroXQoute, cowswapQoute, oneInchQoute, paraswapQoute] =
+        await Promise.all([
+          this.fetchOxQuote(sell, buy, sellAmount),
+          this.fetchCowswapQuote(sellTokenAddress, buyTokenAddress, sellAmount),
+          this.fetchOneInchQoute(sellTokenAddress, buyTokenAddress, sellAmount),
+          this.fetchParaswapQoute(
+            sellTokenAddress,
+            buyTokenAddress,
+            sellAmount
+          ),
+        ]);
+
+      const zeroXAmount = zeroXQoute.buyAmount;
+      const cowswapAmount = cowswapQoute.quote.buyAmount;
+      const oneInchAmount = oneInchQoute.toTokenAmount;
+      const paraswapAmount = paraswapQoute.priceRoute.destAmount;
+
+      // sort the quotes by the expected output
+      const sorted: Quote[] = [
+        createQuote(LIQUIDITY_SOURCES.ZERO_X, zeroXAmount, zeroXQoute),
+        createQuote(LIQUIDITY_SOURCES.COWSWAP, cowswapAmount, cowswapQoute),
+        createQuote(LIQUIDITY_SOURCES.ONE_INCH, oneInchAmount, oneInchQoute),
+        createQuote(LIQUIDITY_SOURCES.PARASWAP, paraswapAmount, paraswapQoute),
+      ].sort((a, b) => b.expectedOutput - a.expectedOutput);
+
+      return sorted;
+    } catch (err) {}
+
+    return [];
   }
 
   static async checkOneInchAllowance(tokenAddress: string, signer: string) {
