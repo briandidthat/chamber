@@ -25,6 +25,8 @@ class Fetcher {
     const provider = new providers.JsonRpcProvider(alchemyUrl);
     const wallet = new ethers.Wallet(privateKey, provider);
 
+    console.log(wallet.address);
+
     return await provider.getBalance(wallet.address);
   }
 }
