@@ -70,14 +70,14 @@ class Swapper {
   ) {
     const networkUrl = getNetworkUrl(network);
     const provider = new ethers.providers.JsonRpcProvider(networkUrl);
-    const signer = "";
+    const signer = new ethers.Wallet(keyManager.get("PRIVATE_KEY"), provider);
 
     try {
       const bestQuote = await this.findBestQuote(sellToken, buyToken, amount);
       console.log(
         `Swapping ${amount} ${sellToken} to ${buyToken} via ${bestQuote?.liquiditySource}`
       );
-      const txParams = await this.buildSwapParams(bestQuote, signer);
+      const txParams = await this.buildSwapParams(bestQuote, signer.address);
     } catch (err) {
       console.error(err);
     }
@@ -88,26 +88,28 @@ class Swapper {
     buyToken: string,
     amount: string
   ) {
-    try {
+    console.log(
+      `Finding best quote for ${sellToken} -> ${buyToken} swap. Sell amount: ${amount.toLocaleLowerCase()}`
+    );
+    const quotes = await this.fetchAllQuotesForSwap(
+      sellToken,
+      buyToken,
+      amount
+    );
+    
+    if (quotes.length === 0) {
+      console.log("Error getting quotes, exiting process.");
+      process.exitCode = 1;
+    };
+
+    quotes.sort((a, b) => b.expectedOutput - a.expectedOutput);
+    quotes.map((val, index) => {
       console.log(
-        `Finding best quote for ${sellToken} -> ${buyToken} swap. Sell amount: ${amount}`
+        `${index}: ${val.liquiditySource}. Expected ouput: ${fromBn(val.expectedOutput, 18)}`
       );
-      const quotes = await this.fetchAllQuotesForSwap(
-        sellToken,
-        buyToken,
-        amount
-      );
+    });
 
-      quotes.map((val, index) => {
-        console.log(
-          `${index}: ${val.liquiditySource}. Expected ouput: ${val.expectedOutput}`
-        );
-      });
-
-      return quotes[0];
-    } catch (err) {
-      console.error(err);
-    }
+    return quotes[0];
   }
 
   static async fetchOxQuote(
@@ -220,21 +222,25 @@ class Swapper {
           ),
         ]);
 
-      const zeroXAmount = zeroXQoute.buyAmount;
-      const cowswapAmount = cowswapQoute.quote.buyAmount;
-      const oneInchAmount = oneInchQoute.toTokenAmount;
-      const paraswapAmount = paraswapQoute.priceRoute.destAmount;
+      const quotes: Quote[] = [
+        createQuote(LIQUIDITY_SOURCES.ZERO_X, zeroXQoute.buyAmount, zeroXQoute),
+        createQuote(LIQUIDITY_SOURCES.COWSWAP, cowswapQoute.quote.buyAmount, cowswapQoute),
+        createQuote(
+          LIQUIDITY_SOURCES.ONE_INCH,
+          oneInchQoute.toTokenAmount,
+          oneInchQoute
+        ),
+        createQuote(
+          LIQUIDITY_SOURCES.PARASWAP,
+          paraswapQoute.priceRoute.destAmount,
+          paraswapQoute
+        ),
+      ];
 
-      // sort the quotes by the expected output
-      const sorted: Quote[] = [
-        createQuote(LIQUIDITY_SOURCES.ZERO_X, zeroXAmount, zeroXQoute),
-        createQuote(LIQUIDITY_SOURCES.COWSWAP, cowswapAmount, cowswapQoute),
-        createQuote(LIQUIDITY_SOURCES.ONE_INCH, oneInchAmount, oneInchQoute),
-        createQuote(LIQUIDITY_SOURCES.PARASWAP, paraswapAmount, paraswapQoute),
-      ].sort((a, b) => b.expectedOutput - a.expectedOutput);
-
-      return sorted;
-    } catch (err) {}
+      return quotes;
+    } catch (err) {
+      console.error(err);
+    }
 
     return [];
   }
