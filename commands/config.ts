@@ -7,6 +7,9 @@ const configCommands = {
   get(key: string) {
     console.log(keyManager.get(key));
   },
+  show() {
+    console.log(keyManager.getAll());
+  },  
   remove(key: string) {
     console.log(keyManager.remove(key));
   },

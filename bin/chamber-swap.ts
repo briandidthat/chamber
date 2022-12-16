@@ -16,7 +16,7 @@ program
   );
 
 program
-  .command("swap")
+  .command("execute")
   .description("execute swap on chain via whitelisted liquidity sources")
   .requiredOption("-s, --sellToken <name>", "token you will be selling")
   .requiredOption("-b, --buyToken <name>", "token you will be buying")

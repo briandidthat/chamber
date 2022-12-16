@@ -16,6 +16,11 @@ program
   .action(({ key }: { key: string }) => configCommands.get(key));
 
 program
+  .command("show")
+  .description("show all env entries")
+  .action(() => configCommands.show());
+
+program
   .command("delete")
   .description("remove an entry from config store")
   .requiredOption("-k, --key <key>", "key name of entry we'll delete")

@@ -20,6 +20,10 @@ class KeyManager {
     return apiKey;
   }
 
+  getAll() {
+    return this.conf.all
+  }
+
   remove(key: string) {
     const value: string = this.conf.get(key);
     if (!value) {

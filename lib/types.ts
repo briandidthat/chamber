@@ -16,7 +16,21 @@ export type TickerList = {
   tickers: string[];
 };
 
+// WEB3 TYPES
+export type Token = {
+  symbol: string;
+  address: string;
+  decimals: number;
+};
+
 // SWAP TYPES
+
+export enum LIQUIDITY_SOURCE {
+  COWSWAP = "Cowswap",
+  PARASWAP = "Paraswap",
+  ZERO_X = "0x",
+  ONE_INCH = "1inch",
+}
 
 export type Quote = {
   liquiditySource: string;
@@ -30,35 +44,3 @@ export type SwapInfo = {
   amount: string;
   network?: string;
 };
-
-export type ParaswapTxRequest = {
-  srcToken: string;
-  destToken: string;
-  destAmount: string;
-  priceRoute: any;
-  userAddress: string;
-};
-
-export type ParaswapTxResponse = {
-  from: string;
-  to: string;
-  value: string;
-  data: string;
-  gasPrice: string;
-  gas: string;
-  chainId: number;
-};
-
-
-
-export function createQuote(
-  liquiditySource: string,
-  expectedOutput: string,
-  response: any
-): Quote {
-  return {
-    liquiditySource: liquiditySource,
-    expectedOutput: expectedOutput,
-    response: response,
-  };
-}
