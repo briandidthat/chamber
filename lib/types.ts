@@ -38,9 +38,14 @@ export type Quote = {
   response: any;
 };
 
-export type SwapInfo = {
+export type SwapDetails = {
   sellToken: string;
   buyToken: string;
   amount: string;
   network?: string;
 };
+
+export enum API_URLS {
+  ZERO_X = "https://api.0x.org/swap/v1",
+  ONE_INCH = "https://api.1inch.io/v5.0/1",
+}

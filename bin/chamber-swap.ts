@@ -1,6 +1,6 @@
 import { program } from "commander";
+import { SwapDetails } from "../lib/types";
 import swapCommands from "../commands/swap";
-import { SwapInfo } from "../lib/types";
 
 program
   .command("quote")
@@ -11,7 +11,7 @@ program
     "-a, --amount <number>",
     "amount of sell token you'll be selling"
   )
-  .action(({ sellToken, buyToken, amount }: SwapInfo) =>
+  .action(({ sellToken, buyToken, amount }: SwapDetails) =>
     swapCommands.findBestQuote(sellToken, buyToken, amount)
   );
 
@@ -25,7 +25,7 @@ program
     "amount of sell token you'll be selling"
   )
   .requiredOption("-n --network <network>", "network to perform the swap on")
-  .action(({ sellToken, buyToken, amount, network }: SwapInfo) =>
+  .action(({ sellToken, buyToken, amount, network }: SwapDetails) =>
     console.log(
       `sellToken=${sellToken}, buyToken=${buyToken}, amount=${amount}, network=${network}`
     )

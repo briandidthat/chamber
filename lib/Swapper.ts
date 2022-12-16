@@ -1,44 +1,39 @@
-import { constructSimpleSDK, SwapSide } from "@paraswap/sdk";
+import { constructSimpleSDK, SimpleSDK, SwapSide } from "@paraswap/sdk";
 import axios from "axios";
 import { ethers, BigNumber } from "ethers";
-import keyManager from "../lib/KeyManager";
 import {
   getTokenDetails,
   createQueryString,
   createQuote,
   fromBn,
 } from "../utils";
-import { LIQUIDITY_SOURCE, Quote } from "./types";
-
-const provider = new ethers.providers.JsonRpcProvider(
-  keyManager.get("ALCHEMY_RPC_URL")
-);
-const signer = new ethers.Wallet(keyManager.get("PRIVATE_KEY"), provider);
-
-// options for paraswap sdk
-const providerOptionsEther = {
-  ethersProviderOrSigner: provider, // JsonRpcProvider
-  EthersContract: ethers.Contract,
-  account: signer.address,
-};
-
-// construct minimal SDK with fetcher only
-const paraSwapMin = constructSimpleSDK(
-  { chainId: 1, axios },
-  providerOptionsEther
-);
+import { API_URLS, LIQUIDITY_SOURCE, Quote } from "./types";
 
 class Swapper {
-  private static oneInchUrl: string = "https://api.1inch.io/v5.0/1";
-  private static zeroXUrl: string = "https://api.0x.org/swap/v1";
+  private signer: ethers.Wallet;
+  private paraswapMin: SimpleSDK;
+  private provider: ethers.providers.JsonRpcProvider;
 
-  static async fetchOxQuote(
-    sellToken: string,
-    buyToken: string,
-    amount: BigNumber
+  constructor(
+    provider: ethers.providers.JsonRpcProvider,
+    signer: ethers.Wallet
   ) {
+    this.provider = provider;
+    this.signer = signer;
+    // construct minimal SDK with fetcher only
+    this.paraswapMin = constructSimpleSDK(
+      { chainId: 1, axios },
+      {
+        ethersProviderOrSigner: this.provider, // JsonRpcProvider
+        EthersContract: ethers.Contract,
+        account: this.signer.address,
+      }
+    );
+  }
+
+  async fetchOxQuote(sellToken: string, buyToken: string, amount: BigNumber) {
     const zeroXQoute = await axios.get(
-      createQueryString(this.zeroXUrl, "/quote", {
+      createQueryString(API_URLS.ZERO_X, "/quote", {
         sellToken: sellToken,
         buyToken: buyToken,
         sellAmount: amount.toString(),
@@ -47,13 +42,13 @@ class Swapper {
     return zeroXQoute.data;
   }
 
-  static async fetchOneInchQoute(
+  async fetchOneInchQoute(
     fromTokenAddress: string,
     toTokenAddress: string,
     amount: BigNumber
   ) {
     const oneInchQoute = await axios.get(
-      createQueryString(this.oneInchUrl, "/quote", {
+      createQueryString(API_URLS.ONE_INCH, "/quote", {
         fromTokenAddress: fromTokenAddress,
         toTokenAddress: toTokenAddress,
         amount: amount.toString(),
@@ -62,12 +57,12 @@ class Swapper {
     return oneInchQoute.data;
   }
 
-  static async fetchParaswapQoute(
+  async fetchParaswapQoute(
     srcToken: string,
     destToken: string,
     amount: BigNumber
   ) {
-    const quote = await paraSwapMin.swap.getRate({
+    const quote = await this.paraswapMin.swap.getRate({
       srcToken: srcToken,
       destToken: destToken,
       amount: amount.toString(),
@@ -77,7 +72,7 @@ class Swapper {
     return quote;
   }
 
-  static async fetchAllQuotesForSwap(
+  async fetchAllQuotesForSwap(
     sellToken: string,
     buyToken: string,
     amount: string
@@ -121,11 +116,7 @@ class Swapper {
     return [];
   }
 
-  static async findBestQuote(
-    sellToken: string,
-    buyToken: string,
-    amount: string
-  ) {
+  async fetchBestQuote(sellToken: string, buyToken: string, amount: string) {
     console.log(
       `Finding best quote for ${sellToken} -> ${buyToken} swap. Sell amount: ${amount.toLocaleLowerCase()}`
     );
@@ -148,10 +139,10 @@ class Swapper {
     return quotes[0];
   }
 
-  static async checkOneInchAllowance(tokenAddress: string, signer: string) {
+  async checkOneInchAllowance(tokenAddress: string, signer: string) {
     return axios
       .get(
-        createQueryString(this.oneInchUrl, "/approve/allowance", {
+        createQueryString(API_URLS.ONE_INCH, "/approve/allowance", {
           tokenAddress,
           signer,
         })
@@ -159,14 +150,14 @@ class Swapper {
       .then((res) => res.data.allowance);
   }
 
-  static async buildOneInchTxData(quote: any, signer: string) {
+  async buildOneInchTxData(quote: any) {
     try {
       const response = await axios.get(
-        createQueryString(this.oneInchUrl, "/swap?", {
+        createQueryString(API_URLS.ONE_INCH, "/swap?", {
           sellTokenAddress: quote.fromToken.address,
           buyTokenAddress: quote.toToken.address,
           amount: quote.fromTokenAmount,
-          fromAddress: signer,
+          fromAddress: this.signer.address,
           slippage: "1",
         })
       );
@@ -176,15 +167,15 @@ class Swapper {
     }
   }
 
-  static async buildParaswapTxData(quote: any) {
+  async buildParaswapTxData(quote: any) {
     try {
-      const txParams = await paraSwapMin.swap.buildTx({
+      const txParams = await this.paraswapMin.swap.buildTx({
         srcToken: quote.srcToken,
         destToken: quote.destToken,
         srcAmount: quote.srcAmount,
         destAmount: quote.destAmount,
         priceRoute: quote.priceRoute,
-        userAddress: signer.address,
+        userAddress: this.signer.address,
       });
 
       return {
@@ -198,10 +189,10 @@ class Swapper {
     }
   }
 
-  static async buildSwapParams(quote: Quote, signer: string) {
+  async buildSwapParams(quote: Quote) {
     switch (quote.liquiditySource) {
       case LIQUIDITY_SOURCE.ONE_INCH:
-        return await this.buildOneInchTxData(quote, signer);
+        return await this.buildOneInchTxData(quote);
       case LIQUIDITY_SOURCE.PARASWAP:
         return await this.buildParaswapTxData(quote);
       case LIQUIDITY_SOURCE.ZERO_X:
@@ -212,18 +203,19 @@ class Swapper {
     }
   }
 
-  static async executeSwap(
-    sellToken: string,
-    buyToken: string,
-    amount: string,
-    network?: string
-  ) {
+  async executeSwap(sellToken: string, buyToken: string, amount: string) {
     try {
-      const bestQuote = await this.findBestQuote(sellToken, buyToken, amount);
+      const bestQuote = await this.fetchBestQuote(sellToken, buyToken, amount);
       console.log(
         `Swapping ${amount} ${sellToken} to ${buyToken} via ${bestQuote?.liquiditySource}`
       );
-      const txParams = await this.buildSwapParams(bestQuote, signer.address);
+
+      const txRequest: ethers.providers.TransactionRequest =
+        await this.buildSwapParams(bestQuote);
+      const txResponse: ethers.providers.TransactionResponse =
+        await this.signer.sendTransaction(txRequest);
+
+      return txResponse;
     } catch (err) {
       console.error(err);
     }
