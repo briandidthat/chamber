@@ -3,14 +3,18 @@ import { LIQUIDITY_SOURCE, Quote } from "../lib/types";
 
 // standardize shape of quote for ordering
 export function createQuote(
+  sellToken: string,
+  buyToken: string,
   liquiditySource: LIQUIDITY_SOURCE,
   expectedOutput: string,
   response: any
 ): Quote {
   return {
-    liquiditySource: liquiditySource,
-    expectedOutput: expectedOutput,
-    response: response,
+    sellToken,
+    buyToken,
+    liquiditySource,
+    expectedOutput,
+    response,
   };
 }
 

@@ -32,14 +32,22 @@ class Swapper {
   }
 
   async fetchOxQuote(sellToken: string, buyToken: string, amount: BigNumber) {
-    const zeroXQoute = await axios.get(
-      createQueryString(API_URLS.ZERO_X, "/quote", {
-        sellToken: sellToken,
-        buyToken: buyToken,
-        sellAmount: amount.toString(),
-      })
+    const response = (
+      await axios.get(
+        createQueryString(API_URLS.ZERO_X, "/quote", {
+          sellToken: sellToken,
+          buyToken: buyToken,
+          sellAmount: amount.toString(),
+        })
+      )
+    ).data;
+    return createQuote(
+      sellToken,
+      buyToken,
+      LIQUIDITY_SOURCE.ZERO_X,
+      response.buyAmount,
+      response
     );
-    return zeroXQoute.data;
   }
 
   async fetchOneInchQoute(
@@ -47,14 +55,23 @@ class Swapper {
     toTokenAddress: string,
     amount: BigNumber
   ) {
-    const oneInchQoute = await axios.get(
-      createQueryString(API_URLS.ONE_INCH, "/quote", {
-        fromTokenAddress: fromTokenAddress,
-        toTokenAddress: toTokenAddress,
-        amount: amount.toString(),
-      })
+    const response = (
+      await axios.get(
+        createQueryString(API_URLS.ONE_INCH, "/quote", {
+          fromTokenAddress: fromTokenAddress,
+          toTokenAddress: toTokenAddress,
+          amount: amount.toString(),
+        })
+      )
+    ).data;
+
+    return createQuote(
+      fromTokenAddress,
+      toTokenAddress,
+      LIQUIDITY_SOURCE.ONE_INCH,
+      response.toTokenAmount,
+      response
     );
-    return oneInchQoute.data;
   }
 
   async fetchParaswapQoute(
@@ -62,14 +79,20 @@ class Swapper {
     destToken: string,
     amount: BigNumber
   ) {
-    const quote = await this.paraswapMin.swap.getRate({
+    const response = await this.paraswapMin.swap.getRate({
       srcToken: srcToken,
       destToken: destToken,
       amount: amount.toString(),
       side: SwapSide.SELL,
     });
 
-    return quote;
+    return createQuote(
+      srcToken,
+      destToken,
+      LIQUIDITY_SOURCE.PARASWAP,
+      response.destAmount,
+      response
+    );
   }
 
   async fetchAllQuotesForSwap(
@@ -88,25 +111,11 @@ class Swapper {
           ? ethers.utils.parseUnits(amount, "mwei")
           : ethers.utils.parseEther(amount);
 
-      const [zeroXQoute, oneInchQoute, paraswapQoute] = await Promise.all([
+      const quotes = await Promise.all([
         this.fetchOxQuote(sell, buy, sellAmount),
         this.fetchOneInchQoute(sellTokenAddress, buyTokenAddress, sellAmount),
         this.fetchParaswapQoute(sellTokenAddress, buyTokenAddress, sellAmount),
       ]);
-
-      const quotes: Quote[] = [
-        createQuote(LIQUIDITY_SOURCE.ZERO_X, zeroXQoute.buyAmount, zeroXQoute),
-        createQuote(
-          LIQUIDITY_SOURCE.ONE_INCH,
-          oneInchQoute.toTokenAmount,
-          oneInchQoute
-        ),
-        createQuote(
-          LIQUIDITY_SOURCE.PARASWAP,
-          paraswapQoute?.destAmount || "",
-          paraswapQoute
-        ),
-      ];
 
       return quotes;
     } catch (err) {
@@ -150,54 +159,52 @@ class Swapper {
       .then((res) => res.data.allowance);
   }
 
-  async buildOneInchTxData(quote: any) {
-    try {
-      const response = await axios.get(
-        createQueryString(API_URLS.ONE_INCH, "/swap?", {
-          sellTokenAddress: quote.fromToken.address,
-          buyTokenAddress: quote.toToken.address,
-          amount: quote.fromTokenAmount,
-          fromAddress: this.signer.address,
-          slippage: "1",
-        })
-      );
-      return response.data;
-    } catch (err) {
-      console.error(err);
-    }
+  async buildOneInchTxData(
+    quote: any
+  ): Promise<ethers.providers.TransactionRequest> {
+    const response = await axios.get(
+      createQueryString(API_URLS.ONE_INCH, "/swap?", {
+        sellTokenAddress: quote.fromToken.address,
+        buyTokenAddress: quote.toToken.address,
+        amount: quote.fromTokenAmount,
+        fromAddress: this.signer.address,
+        slippage: "1",
+      })
+    );
+    return response.data;
   }
 
-  async buildParaswapTxData(quote: any) {
-    try {
-      const txParams = await this.paraswapMin.swap.buildTx({
-        srcToken: quote.srcToken,
-        destToken: quote.destToken,
-        srcAmount: quote.srcAmount,
-        destAmount: quote.destAmount,
-        priceRoute: quote.priceRoute,
-        userAddress: this.signer.address,
-      });
+  async buildParaswapTxData(
+    quote: any
+  ): Promise<ethers.providers.TransactionRequest> {
+    const txParams = await this.paraswapMin.swap.buildTx({
+      srcToken: quote.srcToken,
+      destToken: quote.destToken,
+      srcAmount: quote.srcAmount,
+      destAmount: quote.destAmount,
+      priceRoute: quote.priceRoute,
+      userAddress: this.signer.address,
+    });
 
-      return {
-        ...txParams,
-        gasPrice: new BigNumber(txParams.gasPrice, "gwei").toString(),
-        gasLimit: new BigNumber(5000000, "gwei").toString(),
-        value: "0x" + new BigNumber(txParams.value, "ether").toString(),
-      };
-    } catch (err) {
-      console.error(err);
-    }
+    return {
+      ...txParams,
+      gasPrice: new BigNumber(txParams.gasPrice, "gwei").toString(),
+      gasLimit: new BigNumber(5000000, "gwei").toString(),
+      value: "0x" + new BigNumber(txParams.value, "ether").toString(),
+    };
   }
 
-  async buildSwapParams(quote: Quote) {
+  async buildSwapParams(
+    quote: Quote
+  ): Promise<ethers.providers.TransactionRequest> {
     switch (quote.liquiditySource) {
       case LIQUIDITY_SOURCE.ONE_INCH:
         return await this.buildOneInchTxData(quote);
       case LIQUIDITY_SOURCE.PARASWAP:
         return await this.buildParaswapTxData(quote);
       case LIQUIDITY_SOURCE.ZERO_X:
-        const { data, to, value, gas, gasPrice } = quote.response;
-        return { data, to, value, gas, gasPrice };
+        const { data, to, value, gasLimit, gasPrice } = quote.response;
+        return { data, to, value, gasLimit, gasPrice };
       default:
         throw new Error("Unsupported liquidity source");
     }

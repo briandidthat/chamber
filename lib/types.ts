@@ -26,13 +26,14 @@ export type Token = {
 // SWAP TYPES
 
 export enum LIQUIDITY_SOURCE {
-  COWSWAP = "Cowswap",
   PARASWAP = "Paraswap",
   ZERO_X = "0x",
   ONE_INCH = "1inch",
 }
 
 export type Quote = {
+  buyToken: string;
+  sellToken: string;
   liquiditySource: string;
   expectedOutput: any;
   response: any;
