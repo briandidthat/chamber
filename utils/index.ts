@@ -1,4 +1,4 @@
-export { createQuote, getAvailableTokens } from "./quote";
+export { buildQuote, getAvailableTokens } from "./quote";
 export {
   createQueryString,
   fromBn,

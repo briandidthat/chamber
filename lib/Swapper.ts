@@ -1,10 +1,12 @@
 import { constructSimpleSDK, SimpleSDK, SwapSide } from "@paraswap/sdk";
 import axios from "axios";
 import { ethers, BigNumber } from "ethers";
+import inquirer from "inquirer";
+
 import {
   getTokenDetails,
   createQueryString,
-  createQuote,
+  buildQuote,
   fromBn,
 } from "../utils";
 import { API_URLS, LIQUIDITY_SOURCE, Quote } from "./types";
@@ -24,6 +26,26 @@ class Swapper {
     this.paraswapMin = constructSimpleSDK(
       { chainId: 1, axios },
       {
+        ethersProviderOrSigner: this.provider,
+        EthersContract: ethers.Contract,
+        account: this.signer.address,
+      }
+    );
+  }
+
+  setSigner(signer: ethers.Wallet) {
+    this.signer = signer;
+  }
+
+  setProvider(provider: ethers.providers.JsonRpcProvider) {
+    this.provider = provider;
+  }
+
+  setNetwork(chainId: string) {
+    this.provider = new ethers.providers.JsonRpcProvider(chainId);
+    this.paraswapMin = constructSimpleSDK(
+      { chainId: Number(chainId), axios },
+      {
         ethersProviderOrSigner: this.provider, // JsonRpcProvider
         EthersContract: ethers.Contract,
         account: this.signer.address,
@@ -41,7 +63,7 @@ class Swapper {
         })
       )
     ).data;
-    return createQuote(
+    return buildQuote(
       sellToken,
       buyToken,
       LIQUIDITY_SOURCE.ZERO_X,
@@ -65,7 +87,7 @@ class Swapper {
       )
     ).data;
 
-    return createQuote(
+    return buildQuote(
       fromTokenAddress,
       toTokenAddress,
       LIQUIDITY_SOURCE.ONE_INCH,
@@ -86,7 +108,7 @@ class Swapper {
       side: SwapSide.SELL,
     });
 
-    return createQuote(
+    return buildQuote(
       srcToken,
       destToken,
       LIQUIDITY_SOURCE.PARASWAP,
@@ -140,7 +162,7 @@ class Swapper {
       console.log(
         `${index}: ${val.liquiditySource}. Expected ouput: ${fromBn(
           val.expectedOutput,
-          18
+          buyToken === "USDC" ? 6 : 18
         )}`
       );
     });
@@ -190,7 +212,7 @@ class Swapper {
       ...txParams,
       gasPrice: new BigNumber(txParams.gasPrice, "gwei").toString(),
       gasLimit: new BigNumber(5000000, "gwei").toString(),
-      value: "0x" + new BigNumber(txParams.value, "ether").toString(),
+      value: new BigNumber(txParams.value, "ether").toString(),
     };
   }
 
@@ -213,9 +235,17 @@ class Swapper {
   async executeSwap(sellToken: string, buyToken: string, amount: string) {
     try {
       const bestQuote = await this.fetchBestQuote(sellToken, buyToken, amount);
-      console.log(
-        `Swapping ${amount} ${sellToken} to ${buyToken} via ${bestQuote?.liquiditySource}`
-      );
+      const { shouldExecute } = await inquirer.prompt([
+        {
+          name: "shouldExecute",
+          type: "confirm",
+          message: `Swap ${amount} ${sellToken} for ~${fromBn(
+            bestQuote.expectedOutput
+          )} ${buyToken} via ${bestQuote?.liquiditySource}?`,
+        },
+      ]);
+
+      if (!shouldExecute) return;
 
       const txRequest: ethers.providers.TransactionRequest =
         await this.buildSwapParams(bestQuote);

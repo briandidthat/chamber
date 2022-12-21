@@ -43,7 +43,7 @@ export const createQueryString = (
 
 /**
  * Convert a big number with a custom number of decimals to a stringified fixed-point number
- * @param x the big number we will be parsingd
+ * @param x the big number we will be parsing
  * @param decimals the number of decimal places for this big number
  * @returns string
  */

@@ -2,7 +2,7 @@ import axios from "axios";
 import { LIQUIDITY_SOURCE, Quote } from "../lib/types";
 
 // standardize shape of quote for ordering
-export function createQuote(
+export function buildQuote(
   sellToken: string,
   buyToken: string,
   liquiditySource: LIQUIDITY_SOURCE,
