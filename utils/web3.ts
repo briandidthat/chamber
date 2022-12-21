@@ -1,4 +1,5 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
+import { Token } from "../lib/types";
 
 const TOKEN_MAP: Record<string, string> = {
   ETH: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
@@ -14,10 +15,10 @@ const NETWORK_MAP: Record<string, string> = {
   localhost: "http://127.0.0.1:8545",
 };
 
-export const getTokenDetails = (ticker: string) => {
+export const getTokenDetails = (ticker: string): Token => {
   const address = TOKEN_MAP[ticker];
   if (!ticker) throw new Error("that token is not supported");
-  return address;
+  return { symbol: "", address, decimals: 18 };
 };
 
 export const getNetworkUrl = (network: string) => {
