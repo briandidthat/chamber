@@ -8,6 +8,7 @@ import {
   createQueryString,
   buildQuote,
   fromBn,
+  getAvailableTokens,
 } from "../utils";
 import { API_URLS, LIQUIDITY_SOURCE, Quote } from "./types";
 
@@ -122,19 +123,21 @@ class Swapper {
     buyToken: string,
     amount: string
   ) {
-    const sell = sellToken.toUpperCase();
-    const buy = buyToken.toUpperCase();
-    const sellTokenAddress = getTokenDetails(sell);
-    const buyTokenAddress = getTokenDetails(buy);
+    const { address: sellTokenAddress } = getTokenDetails(sellToken);
+    const { address: buyTokenAddress } = getTokenDetails(buyToken);
+
+    const sellAmount: BigNumber =
+      sellToken === "USDC"
+        ? ethers.utils.parseUnits(amount, "mwei")
+        : ethers.utils.parseEther(amount);
 
     try {
-      const sellAmount: BigNumber =
-        sell === "USDC"
-          ? ethers.utils.parseUnits(amount, "mwei")
-          : ethers.utils.parseEther(amount);
-
       const quotes = await Promise.all([
-        this.fetchOxQuote(sell, buy, sellAmount),
+        this.fetchOxQuote(
+          sellToken.toUpperCase(),
+          buyToken.toUpperCase(),
+          sellAmount
+        ),
         this.fetchOneInchQoute(sellTokenAddress, buyTokenAddress, sellAmount),
         this.fetchParaswapQoute(sellTokenAddress, buyTokenAddress, sellAmount),
       ]);
