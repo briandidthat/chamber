@@ -15,17 +15,21 @@ const swapCommands = {
     const quote = await swapper.fetchBestQuote(sellToken, buyToken, amount);
     console.log(
       colors.green(
-        `Best Quote: ${quote.liquiditySource}. Expected output: ${fromBn(quote.expectedOutput)} ${quote.buyToken}`
+        `Best Quote: ${quote.liquiditySource}. Expected output: ${fromBn(
+          quote.expectedOutput
+        )} ${quote.buyToken}`
       )
     );
   },
   async swap(sellToken: string, buyToken: string, amount: string) {
     const swap = await swapper.executeSwap(sellToken, buyToken, amount);
-    console.log(
-      colors.green(
-        `Swap executed. View transaction @ https://etherscan.io/tx/${swap?.hash}`
-      )
-    );
+    if (swap !== undefined) {
+      console.log(
+        colors.green(
+          `Swap executed. View transaction @ https://etherscan.io/tx/${swap?.hash}`
+        )
+      );
+    }
   },
 };
 

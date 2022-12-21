@@ -24,11 +24,8 @@ program
     "-a, --amount <number>",
     "amount of sell token you'll be selling"
   )
-  .requiredOption("-n --network <network>", "network to perform the swap on")
-  .action(({ sellToken, buyToken, amount, network }: SwapDetails) =>
-    console.log(
-      `sellToken=${sellToken}, buyToken=${buyToken}, amount=${amount}, network=${network}`
-    )
+  .action(({ sellToken, buyToken, amount }: SwapDetails) =>
+    swapCommands.swap(sellToken, buyToken, amount)
   );
 
 program.parse(process.argv);

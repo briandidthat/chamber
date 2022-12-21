@@ -50,3 +50,13 @@ export enum API_URLS {
   ZERO_X = "https://api.0x.org/swap/v1",
   ONE_INCH = "https://api.1inch.io/v5.0/1",
 }
+
+export enum NETWORKS {
+  MAINNET = 1,
+  GOERLI = 5,
+  BSC_MAINNET = 56,
+  POLYGON = 137,
+  FANTOM = 250,
+  ARBITRUM = 42161,
+  AVALANCHE = 43114,
+}

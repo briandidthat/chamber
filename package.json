@@ -26,11 +26,13 @@
     "commander": "^9.4.1",
     "configstore": "^5.0.1",
     "ethers": "^5.7.2",
+    "inquirer": "^8.2.4",
     "typescript": "^4.9.3"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/configstore": "^6.0.0",
+    "@types/inquirer": "^9.0.3",
     "@types/node": "^18.11.10"
   }
 }
