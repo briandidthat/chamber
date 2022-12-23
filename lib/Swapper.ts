@@ -1,16 +1,16 @@
-import { constructSimpleSDK, SimpleSDK, SwapSide } from "@paraswap/sdk";
 import axios from "axios";
-import { ethers, BigNumber } from "ethers";
 import inquirer from "inquirer";
-
+import { ethers, BigNumber } from "ethers";
+import { constructSimpleSDK, SimpleSDK, SwapSide } from "@paraswap/sdk";
 import {
+  fromBn,
+  buildQuote,
   getTokenDetails,
   createQueryString,
-  buildQuote,
-  fromBn,
-  getAvailableTokens,
+  API_URLS,
+  LIQUIDITY_SOURCE,
 } from "../utils";
-import { API_URLS, LIQUIDITY_SOURCE, Quote } from "./types";
+import { Quote } from "./types";
 
 class Swapper {
   private signer: ethers.Wallet;
@@ -78,6 +78,8 @@ class Swapper {
     toTokenAddress: string,
     amount: BigNumber
   ) {
+    const tokens = (await axios.get("https://api.1inch.io/v5.0/1/tokens")).data;
+
     const response = (
       await axios.get(
         createQueryString(API_URLS.ONE_INCH, "/quote", {
@@ -102,6 +104,13 @@ class Swapper {
     destToken: string,
     amount: BigNumber
   ) {
+    const tokens = await this.paraswapMin.swap.getTokens();
+
+    tokens.map((val) => {
+      if (srcToken === val.symbol) {
+      }
+    });
+
     const response = await this.paraswapMin.swap.getRate({
       srcToken: srcToken,
       destToken: destToken,
