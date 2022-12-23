@@ -10,6 +10,27 @@ const TOKEN_MAP: Record<string, string> = {
   WBTC: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
 };
 
+export enum API_URLS {
+  ZERO_X = "https://api.0x.org/swap/v1",
+  ONE_INCH = "https://api.1inch.io/v5.0/1",
+}
+
+export enum NETWORK {
+  MAINNET = 1,
+  GOERLI = 5,
+  BSC_MAINNET = 56,
+  POLYGON = 137,
+  FANTOM = 250,
+  ARBITRUM = 42161,
+  AVALANCHE = 43114,
+}
+
+export enum LIQUIDITY_SOURCE {
+  PARASWAP = "Paraswap",
+  ZERO_X = "0x",
+  ONE_INCH = "1inch",
+}
+
 const NETWORK_MAP: Record<string, string> = {
   // mainnet: keyManager.get("MAINNET_URL"),
   localhost: "http://127.0.0.1:8545",
