@@ -1,5 +1,6 @@
 import axios from "axios";
 import inquirer from "inquirer";
+import Moralis from "moralis";
 import { ethers, BigNumber } from "ethers";
 import { constructSimpleSDK, SimpleSDK, SwapSide } from "@paraswap/sdk";
 import {
@@ -11,10 +12,12 @@ import {
   LIQUIDITY_SOURCE,
 } from "../utils";
 import { Quote } from "./types";
+import keyManager from "./KeyManager";
 
 class Swapper {
   private signer: ethers.Wallet;
   private paraswapMin: SimpleSDK;
+  private moralis;
   private provider: ethers.providers.JsonRpcProvider;
 
   constructor(
@@ -31,6 +34,9 @@ class Swapper {
         EthersContract: ethers.Contract,
         account: this.signer.address,
       }
+    );
+    this.moralis = Promise.resolve(
+      Moralis.start({ apiKey: keyManager.get("MORALIS_API_KEY") })
     );
   }
 
@@ -78,8 +84,6 @@ class Swapper {
     toTokenAddress: string,
     amount: BigNumber
   ) {
-    const tokens = (await axios.get("https://api.1inch.io/v5.0/1/tokens")).data;
-
     const response = (
       await axios.get(
         createQueryString(API_URLS.ONE_INCH, "/quote", {
@@ -104,13 +108,6 @@ class Swapper {
     destToken: string,
     amount: BigNumber
   ) {
-    const tokens = await this.paraswapMin.swap.getTokens();
-
-    tokens.map((val) => {
-      if (srcToken === val.symbol) {
-      }
-    });
-
     const response = await this.paraswapMin.swap.getRate({
       srcToken: srcToken,
       destToken: destToken,
