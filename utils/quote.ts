@@ -24,7 +24,7 @@ export const getAvailableTokens = async (liquiditySource: LIQUIDITY_SOURCE) => {
   let availableTokens;
   switch (liquiditySource) {
     case LIQUIDITY_SOURCE.ONE_INCH:
-      availableTokens = 
+      availableTokens = (await axios.get("https://api.1inch.io/v5.0/1/tokens"))
         .data.tokens;
       break;
     case LIQUIDITY_SOURCE.PARASWAP:
