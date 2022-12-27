@@ -1,21 +1,11 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
-import { Token } from "../lib/types";
-
-const TOKEN_MAP: Record<string, string> = {
-  ETH: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-  DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-  USDC: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-  USDT: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-  WETH: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-  WBTC: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-};
 
 export enum API_URLS {
   ZERO_X = "https://api.0x.org/swap/v1",
   ONE_INCH = "https://api.1inch.io/v5.0/1",
 }
 
-export enum NETWORK {
+export enum CHAIN_ID {
   MAINNET = 1,
   GOERLI = 5,
   BSC_MAINNET = 56,
@@ -34,12 +24,6 @@ export enum LIQUIDITY_SOURCE {
 const NETWORK_MAP: Record<string, string> = {
   // mainnet: keyManager.get("MAINNET_URL"),
   localhost: "http://127.0.0.1:8545",
-};
-
-export const getTokenDetails = (ticker: string): Token => {
-  const address = TOKEN_MAP[ticker];
-  if (!ticker) throw new Error("that token is not supported");
-  return { symbol: "", address, decimals: 18 };
 };
 
 export const getNetworkUrl = (network: string) => {

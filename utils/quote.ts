@@ -1,11 +1,12 @@
 import axios from "axios";
 import { Quote } from "../lib/types";
 import { LIQUIDITY_SOURCE } from "../utils";
+import { Token } from "../lib/types";
 
 // standardize shape of quote for ordering
 export function buildQuote(
-  sellToken: string,
-  buyToken: string,
+  sellToken: Token,
+  buyToken: Token,
   liquiditySource: LIQUIDITY_SOURCE,
   expectedOutput: string,
   response: any
