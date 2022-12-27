@@ -3,8 +3,8 @@ export {
   createQueryString,
   fromBn,
   getNetworkUrl,
-  getTokenDetails,
+  CHAIN_ID,
   LIQUIDITY_SOURCE,
-  NETWORK,
   API_URLS,
 } from "./web3";
+export { getTokenDetails, getTokenPairDetails } from "./tokens";

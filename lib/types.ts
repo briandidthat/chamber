@@ -27,8 +27,8 @@ export type Token = {
 // SWAP TYPES
 
 export type Quote = {
-  buyToken: string;
-  sellToken: string;
+  buyToken: Token;
+  sellToken: Token;
   liquiditySource: string;
   expectedOutput: any;
   response: any;
@@ -40,4 +40,3 @@ export type SwapDetails = {
   amount: string;
   network?: string;
 };
-

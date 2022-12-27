@@ -17,7 +17,7 @@ const swapCommands = {
       colors.green(
         `Best Quote: ${quote.liquiditySource}. Expected output: ${fromBn(
           quote.expectedOutput
-        )} ${quote.buyToken}`
+        )} ${quote.buyToken.symbol}`
       )
     );
   },
