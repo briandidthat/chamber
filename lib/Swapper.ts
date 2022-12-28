@@ -11,6 +11,7 @@ import {
 } from "../utils";
 import { Quote, Token } from "./types";
 import { CHAIN_ID, getTokenPairDetails } from "../utils";
+import keyManager from "./KeyManager";
 
 class Swapper {
   private signer: ethers.Wallet;
@@ -42,10 +43,12 @@ class Swapper {
     this.provider = provider;
   }
 
-  setNetwork(chainId: string) {
-    this.provider = new ethers.providers.JsonRpcProvider(chainId);
+  setNetwork(chainId: number) {
+    this.provider = new ethers.providers.JsonRpcProvider(
+      keyManager.get("CURRENT_NETWORK")
+    );
     this.paraswapMin = constructSimpleSDK(
-      { chainId: Number(chainId), axios },
+      { chainId: chainId, axios },
       {
         ethersProviderOrSigner: this.provider, // JsonRpcProvider
         EthersContract: ethers.Contract,
