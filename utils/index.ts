@@ -1,10 +1,11 @@
 export { buildQuote, getAvailableTokens } from "./quote";
 export {
-  createQueryString,
-  fromBn,
-  getNetworkUrl,
   CHAIN_ID,
-  LIQUIDITY_SOURCE,
   API_URLS,
+  LIQUIDITY_SOURCE,
+  fromBn,
+  createQueryString,
+  getNetworkUrl,
+  getTokenDetails,
+  getTokenPairDetails,
 } from "./web3";
-export { getTokenDetails, getTokenPairDetails } from "./tokens";

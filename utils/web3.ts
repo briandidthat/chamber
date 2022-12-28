@@ -1,8 +1,11 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
+import { Token } from "../lib/types";
+import { tokens } from "./tokens.json";
 
 export enum API_URLS {
   ZERO_X = "https://api.0x.org/swap/v1",
   ONE_INCH = "https://api.1inch.io/v5.0/1",
+  PARASWAP = "https://apiv5.paraswap.io",
 }
 
 export enum CHAIN_ID {
@@ -69,3 +72,37 @@ export function fromBn(x: BigNumber, decimals: number = 18): string {
   ).toString();
   return result.replace(/.0$/, "");
 }
+
+const SUPPORTED_TOKENS: Record<number, Token[]> = {
+  [CHAIN_ID.MAINNET]: tokens,
+};
+
+export const getTokenDetails = (symbol: string, network: number): Token => {
+  const tokens = SUPPORTED_TOKENS[network];
+  for (let token of tokens) {
+    if (token.symbol === symbol) {
+      return token;
+    }
+  }
+  throw new Error(`${symbol} is not a supported token`);
+};
+
+export const getTokenPairDetails = (
+  sellToken: string,
+  buyToken: string,
+  network: number
+): Token[] => {
+  const tokens = SUPPORTED_TOKENS[network];
+  let sellTokenDetails,
+    buyTokenDetails = undefined;
+
+  for (let token of tokens) {
+    if (token.symbol === sellToken) sellTokenDetails = token;
+    if (token.symbol === buyToken) buyTokenDetails = token;
+  }
+
+  if (sellTokenDetails === undefined || buyTokenDetails === undefined) {
+    throw new Error(`${sellToken} -> ${buyToken} is not a supported trade`);
+  }
+  return [sellTokenDetails, buyTokenDetails];
+};
