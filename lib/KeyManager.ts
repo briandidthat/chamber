@@ -21,7 +21,7 @@ class KeyManager {
   }
 
   getAll() {
-    return this.conf.all
+    return this.conf.all;
   }
 
   remove(key: string) {

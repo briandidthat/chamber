@@ -1,38 +1,79 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
-import { Token } from "../lib/types";
+import { Network, Token } from "../lib/types";
 import { tokens } from "./tokens.json";
 
-export enum API_URLS {
+export enum ProtocolUrls {
   ZERO_X = "https://api.0x.org/swap/v1",
   ONE_INCH = "https://api.1inch.io/v5.0/1",
   PARASWAP = "https://apiv5.paraswap.io",
 }
 
-export enum CHAIN_ID {
+export enum ChainId {
+  LOCALHOST = 0,
   MAINNET = 1,
   GOERLI = 5,
-  BSC_MAINNET = 56,
+  BSC = 56,
   POLYGON = 137,
   FANTOM = 250,
   ARBITRUM = 42161,
   AVALANCHE = 43114,
 }
 
-export enum LIQUIDITY_SOURCE {
-  PARASWAP = "Paraswap",
-  ZERO_X = "0x",
-  ONE_INCH = "1inch",
-}
-
-const NETWORK_MAP: Record<string, string> = {
-  // mainnet: keyManager.get("MAINNET_URL"),
-  localhost: "http://127.0.0.1:8545",
+const NetworkDetails: Record<ChainId, Network> = {
+  [ChainId.LOCALHOST]: {
+    chainId: 0,
+    name: "localhost",
+    nodeUrl: "http://127.0.0.1:8545",
+    scanner: "",
+  },
+  [ChainId.MAINNET]: {
+    chainId: 1,
+    name: "mainnet",
+    nodeUrl: "",
+    scanner: "https://etherscan.io",
+  },
+  [ChainId.GOERLI]: {
+    chainId: 5,
+    name: "goerli",
+    nodeUrl: "",
+    scanner: "https://goerli.etherscan.io",
+  },
+  [ChainId.BSC]: {
+    chainId: 56,
+    name: "bsc",
+    nodeUrl: "",
+    scanner: "https://bscscan.com",
+  },
+  [ChainId.POLYGON]: {
+    name: "polygon",
+    chainId: 137,
+    nodeUrl: "",
+    scanner: "https://polygonscan.com",
+  },
+  [ChainId.FANTOM]: {
+    name: "fantom",
+    chainId: 250,
+    nodeUrl: "",
+    scanner: "https://ftmscan.com",
+  },
+  [ChainId.ARBITRUM]: {
+    name: "arbitrum",
+    chainId: 42161,
+    nodeUrl: "",
+    scanner: "https://arbiscan.io",
+  },
+  [ChainId.AVALANCHE]: {
+    name: "avalanche",
+    chainId: 43114,
+    nodeUrl: "",
+    scanner: "https://snowtrace.io",
+  },
 };
 
-export const getNetworkUrl = (network: string) => {
-  const networkUrl = NETWORK_MAP[network.toLowerCase()];
-  if (!networkUrl) throw new Error("provided network is not supported");
-  return networkUrl;
+export const getNetwork = (chainId: ChainId) => {
+  const network = NetworkDetails[chainId];
+  if (!network) throw new Error("provided network is not supported");
+  return network;
 };
 
 /**
@@ -73,12 +114,19 @@ export function fromBn(x: BigNumber, decimals: number = 18): string {
   return result.replace(/.0$/, "");
 }
 
-const SUPPORTED_TOKENS: Record<number, Token[]> = {
-  [CHAIN_ID.MAINNET]: tokens,
+const SUPPORTED_TOKENS: Record<ChainId, Token[]> = {
+  [ChainId.LOCALHOST]: tokens,
+  [ChainId.MAINNET]: tokens,
+  [ChainId.GOERLI]: [],
+  [ChainId.BSC]: [],
+  [ChainId.FANTOM]: [],
+  [ChainId.AVALANCHE]: [],
+  [ChainId.ARBITRUM]: [],
+  [ChainId.POLYGON]: [],
 };
 
-export const getTokenDetails = (symbol: string, network: number): Token => {
-  const tokens = SUPPORTED_TOKENS[network];
+export const getTokenDetails = (symbol: string, chainId: ChainId): Token => {
+  const tokens = SUPPORTED_TOKENS[chainId];
   for (let token of tokens) {
     if (token.symbol === symbol) {
       return token;
@@ -90,9 +138,9 @@ export const getTokenDetails = (symbol: string, network: number): Token => {
 export const getTokenPairDetails = (
   sellToken: string,
   buyToken: string,
-  network: number
+  chainId: ChainId
 ): Token[] => {
-  const tokens = SUPPORTED_TOKENS[network];
+  const tokens = SUPPORTED_TOKENS[chainId];
   let sellTokenDetails,
     buyTokenDetails = undefined;
 

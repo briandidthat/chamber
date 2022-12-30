@@ -1,5 +1,7 @@
 // CONFIG TYPES
 
+import { ChainId } from "../utils";
+
 export type KeyPair = {
   key: string;
   val: string;
@@ -17,6 +19,13 @@ export type TickerList = {
 };
 
 // WEB3 TYPES
+
+export interface Network {
+  name: string;
+  nodeUrl: string;
+  scanner: string;
+  chainId: ChainId;
+}
 
 export type Token = {
   symbol: string;
