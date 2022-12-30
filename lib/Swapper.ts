@@ -1,53 +1,54 @@
 import axios from "axios";
 import inquirer from "inquirer";
-import { ethers, BigNumber } from "ethers";
+import { ethers, BigNumber, providers, Wallet } from "ethers";
 import { constructSimpleSDK, SimpleSDK, SwapSide } from "@paraswap/sdk";
+import keyManager from "./KeyManager";
+import { Quote, Token, Network } from "./types";
 import {
   fromBn,
   buildQuote,
   createQueryString,
-  API_URLS,
-  LIQUIDITY_SOURCE,
+  ProtocolUrls,
+  LiquiditySource,
+  ChainId,
+  getTokenPairDetails,
+  getNetwork,
 } from "../utils";
-import { Quote, Token } from "./types";
-import { CHAIN_ID, getTokenPairDetails } from "../utils";
-import keyManager from "./KeyManager";
 
 class Swapper {
   private signer: ethers.Wallet;
   private paraswapMin: SimpleSDK;
   private provider: ethers.providers.JsonRpcProvider;
+  private currentNetwork: Network;
 
-  constructor(
-    provider: ethers.providers.JsonRpcProvider,
-    signer: ethers.Wallet
-  ) {
-    this.provider = provider;
+  constructor(chainId: ChainId) {
+    this.currentNetwork = getNetwork(chainId);
+    this.provider = new providers.JsonRpcProvider(this.currentNetwork.nodeUrl);
+    this.signer = new Wallet(keyManager.get("PRIVATE_KEY"), this.provider);
+    this.paraswapMin = this.getNewParaswapSdk(chainId);
+  }
+
+  setSigner(signer: ethers.Wallet, chainId: ChainId = ChainId.MAINNET) {
     this.signer = signer;
-    // construct minimal SDK with fetcher only
-    this.paraswapMin = constructSimpleSDK(
-      { chainId: 1, axios },
-      {
-        ethersProviderOrSigner: this.provider,
-        EthersContract: ethers.Contract,
-        account: this.signer.address,
-      }
-    );
+    this.paraswapMin = this.getNewParaswapSdk(chainId);
   }
 
-  setSigner(signer: ethers.Wallet) {
-    this.signer = signer;
+  setNewProvider(chainId: ChainId) {
+    this.currentNetwork = getNetwork(chainId);
+    this.provider = new providers.JsonRpcProvider(this.currentNetwork.nodeUrl);
+    this.paraswapMin = this.getNewParaswapSdk(chainId);
   }
 
-  setProvider(provider: ethers.providers.JsonRpcProvider) {
-    this.provider = provider;
+  setCurrentNetwork(chainId: ChainId) {
+    this.currentNetwork = getNetwork(chainId);
   }
 
-  setNetwork(chainId: number) {
-    this.provider = new ethers.providers.JsonRpcProvider(
-      keyManager.get("CURRENT_NETWORK")
-    );
-    this.paraswapMin = constructSimpleSDK(
+  getCurrentNetwork() {
+    return this.currentNetwork;
+  }
+
+  getNewParaswapSdk(chainId: ChainId) {
+    return constructSimpleSDK(
       { chainId: chainId, axios },
       {
         ethersProviderOrSigner: this.provider, // JsonRpcProvider
@@ -64,7 +65,7 @@ class Swapper {
   ) {
     const response = (
       await axios.get(
-        createQueryString(API_URLS.ZERO_X, "/quote", {
+        createQueryString(ProtocolUrls.ZERO_X, "/quote", {
           sellToken: sellToken.symbol,
           buyToken: buyToken.symbol,
           sellAmount: amount.toString(),
@@ -74,7 +75,7 @@ class Swapper {
     return buildQuote(
       sellToken,
       buyToken,
-      LIQUIDITY_SOURCE.ZERO_X,
+      LiquiditySource.ZERO_X,
       response.buyAmount,
       response
     );
@@ -87,7 +88,7 @@ class Swapper {
   ) {
     const response = (
       await axios.get(
-        createQueryString(API_URLS.ONE_INCH, "/quote", {
+        createQueryString(ProtocolUrls.ONE_INCH, "/quote", {
           fromTokenAddress: sellToken.address,
           toTokenAddress: buyToken.address,
           amount: amount.toString(),
@@ -98,7 +99,7 @@ class Swapper {
     return buildQuote(
       sellToken,
       buyToken,
-      LIQUIDITY_SOURCE.ONE_INCH,
+      LiquiditySource.ONE_INCH,
       response.toTokenAmount,
       response
     );
@@ -119,7 +120,7 @@ class Swapper {
     return buildQuote(
       sellToken,
       buyToken,
-      LIQUIDITY_SOURCE.PARASWAP,
+      LiquiditySource.PARASWAP,
       response.destAmount,
       response
     );
@@ -157,7 +158,7 @@ class Swapper {
     const [sellToken, buyToken] = getTokenPairDetails(
       sellTokenSymbol,
       buyTokenSymbol,
-      CHAIN_ID.MAINNET
+      ChainId.MAINNET
     );
 
     const sellAmount: BigNumber = ethers.utils.parseUnits(
@@ -187,7 +188,7 @@ class Swapper {
   async checkOneInchAllowance(tokenAddress: string, signer: string) {
     return axios
       .get(
-        createQueryString(API_URLS.ONE_INCH, "/approve/allowance", {
+        createQueryString(ProtocolUrls.ONE_INCH, "/approve/allowance", {
           tokenAddress,
           signer,
         })
@@ -199,7 +200,7 @@ class Swapper {
     quote: any
   ): Promise<ethers.providers.TransactionRequest> {
     const response = await axios.get(
-      createQueryString(API_URLS.ONE_INCH, "/swap?", {
+      createQueryString(ProtocolUrls.ONE_INCH, "/swap?", {
         sellTokenAddress: quote.fromToken.address,
         buyTokenAddress: quote.toToken.address,
         amount: quote.fromTokenAmount,
@@ -234,11 +235,11 @@ class Swapper {
     quote: Quote
   ): Promise<ethers.providers.TransactionRequest> {
     switch (quote.liquiditySource) {
-      case LIQUIDITY_SOURCE.ONE_INCH:
+      case LiquiditySource.ONE_INCH:
         return await this.buildOneInchTxData(quote);
-      case LIQUIDITY_SOURCE.PARASWAP:
+      case LiquiditySource.PARASWAP:
         return await this.buildParaswapTxData(quote);
-      case LIQUIDITY_SOURCE.ZERO_X:
+      case LiquiditySource.ZERO_X:
         const { data, to, value, gasLimit, gasPrice } = quote.response;
         return { data, to, value, gasLimit, gasPrice };
       default:

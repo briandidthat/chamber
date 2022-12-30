@@ -1,14 +1,8 @@
-import { ethers } from "ethers";
 import colors from "colors";
 import Swapper from "../lib/Swapper";
-import keyManager from "../lib/KeyManager";
 import { fromBn } from "../utils";
 
-const provider = new ethers.providers.JsonRpcProvider(
-  keyManager.get("CURRENT_NETWORK")
-);
-const signer = new ethers.Wallet(keyManager.get("PRIVATE_KEY"), provider);
-const swapper = new Swapper(provider, signer);
+const swapper = new Swapper(1);
 
 const swapCommands = {
   async findBestQuote(sellToken: string, buyToken: string, amount: string) {
@@ -22,11 +16,12 @@ const swapCommands = {
     );
   },
   async swap(sellToken: string, buyToken: string, amount: string) {
+    const network = swapper.getCurrentNetwork();
     const swap = await swapper.executeSwap(sellToken, buyToken, amount);
     if (swap !== undefined) {
       console.log(
         colors.green(
-          `Swap executed. View transaction @ https://etherscan.io/tx/${swap?.hash}`
+          `Tx executed. View transaction @ ${network.scanner}/tx/${swap?.hash}`
         )
       );
     }
