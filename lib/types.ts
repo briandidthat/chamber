@@ -1,5 +1,6 @@
 // CONFIG TYPES
 
+import { BigNumber } from "ethers";
 import { ChainId } from "../utils";
 
 export type KeyPair = {
@@ -38,6 +39,7 @@ export type Token = {
 export type Quote = {
   buyToken: Token;
   sellToken: Token;
+  amount: BigNumber;
   liquiditySource: string;
   expectedOutput: any;
   response: any;
