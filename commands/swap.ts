@@ -1,8 +1,8 @@
 import colors from "colors";
 import Swapper from "../lib/Swapper";
-import { fromBn } from "../utils";
+import { ChainId, fromBn } from "../utils";
 
-const swapper = new Swapper(1);
+const swapper = new Swapper(ChainId.MAINNET);
 
 const swapCommands = {
   async findBestQuote(sellToken: string, buyToken: string, amount: string) {
@@ -16,12 +16,12 @@ const swapCommands = {
     );
   },
   async swap(sellToken: string, buyToken: string, amount: string) {
-    const network = swapper.getCurrentNetwork();
+    const network = swapper.getNetwork();
     const swap = await swapper.executeSwap(sellToken, buyToken, amount);
     if (swap !== undefined) {
       console.log(
         colors.green(
-          `Tx executed. View transaction @ ${network.scanner}/tx/${swap?.hash}`
+          `Tx executed. View transaction @ ${network.scanner}/tx/${swap.hash}`
         )
       );
     }

@@ -1,8 +1,8 @@
 import axios from "axios";
 import inquirer from "inquirer";
 import { ethers, BigNumber, providers, Wallet } from "ethers";
-import { constructSimpleSDK, SimpleSDK, SwapSide } from "@paraswap/sdk";
 import keyManager from "./KeyManager";
+import { erc20Abi } from "../utils/web3";
 import { Quote, Token, Network } from "./types";
 import {
   fromBn,
@@ -16,46 +16,35 @@ import {
 } from "../utils";
 
 class Swapper {
+  private network: Network;
   private signer: ethers.Wallet;
-  private paraswapMin: SimpleSDK;
   private provider: ethers.providers.JsonRpcProvider;
-  private currentNetwork: Network;
 
   constructor(chainId: ChainId) {
-    this.currentNetwork = getNetwork(chainId);
-    this.provider = new providers.JsonRpcProvider(this.currentNetwork.nodeUrl);
+    this.network = getNetwork(chainId);
+    this.provider = new providers.JsonRpcProvider(this.network.nodeUrl);
     this.signer = new Wallet(keyManager.get("PRIVATE_KEY"), this.provider);
-    this.paraswapMin = this.getNewParaswapSdk(chainId);
   }
 
-  setSigner(signer: ethers.Wallet, chainId: ChainId = ChainId.MAINNET) {
+  setSigner(signer: ethers.Wallet) {
     this.signer = signer;
-    this.paraswapMin = this.getNewParaswapSdk(chainId);
+  }
+
+  setNetwork(chainId: ChainId) {
+    this.network = getNetwork(chainId);
   }
 
   setNewProvider(chainId: ChainId) {
-    this.currentNetwork = getNetwork(chainId);
-    this.provider = new providers.JsonRpcProvider(this.currentNetwork.nodeUrl);
-    this.paraswapMin = this.getNewParaswapSdk(chainId);
+    this.network = getNetwork(chainId);
+    this.provider = new providers.JsonRpcProvider(this.network.nodeUrl);
   }
 
-  setCurrentNetwork(chainId: ChainId) {
-    this.currentNetwork = getNetwork(chainId);
+  getNetwork() {
+    return this.network;
   }
 
-  getCurrentNetwork() {
-    return this.currentNetwork;
-  }
-
-  getNewParaswapSdk(chainId: ChainId) {
-    return constructSimpleSDK(
-      { chainId: chainId, axios },
-      {
-        ethersProviderOrSigner: this.provider, // JsonRpcProvider
-        EthersContract: ethers.Contract,
-        account: this.signer.address,
-      }
-    );
+  getSignerAddress() {
+    return this.signer.address;
   }
 
   private async fetchOxQuote(
@@ -75,6 +64,7 @@ class Swapper {
     return buildQuote(
       sellToken,
       buyToken,
+      amount,
       LiquiditySource.ZERO_X,
       response.buyAmount,
       response
@@ -99,6 +89,7 @@ class Swapper {
     return buildQuote(
       sellToken,
       buyToken,
+      amount,
       LiquiditySource.ONE_INCH,
       response.toTokenAmount,
       response
@@ -110,18 +101,24 @@ class Swapper {
     buyToken: Token,
     amount: BigNumber
   ) {
-    const response = await this.paraswapMin.swap.getRate({
-      srcToken: sellToken.address,
-      destToken: buyToken.address,
-      amount: amount.toString(),
-      side: SwapSide.SELL,
-    });
+    const response = (
+      await axios.get(
+        createQueryString(ProtocolUrls.PARASWAP, "/prices", {
+          srcToken: sellToken.address,
+          destToken: buyToken.address,
+          amount: amount.toString(),
+          side: "SELL",
+          network: ChainId.MAINNET,
+        })
+      )
+    ).data;
 
     return buildQuote(
       sellToken,
       buyToken,
+      amount,
       LiquiditySource.PARASWAP,
-      response.destAmount,
+      response.priceRoute.destAmount,
       response
     );
   }
@@ -197,13 +194,13 @@ class Swapper {
   }
 
   private async buildOneInchTxData(
-    quote: any
+    quote: Quote
   ): Promise<ethers.providers.TransactionRequest> {
     const response = await axios.get(
       createQueryString(ProtocolUrls.ONE_INCH, "/swap?", {
-        sellTokenAddress: quote.fromToken.address,
-        buyTokenAddress: quote.toToken.address,
-        amount: quote.fromTokenAmount,
+        sellTokenAddress: quote.sellToken.address,
+        buyTokenAddress: quote.buyToken.address,
+        amount: quote.amount,
         fromAddress: this.signer.address,
         slippage: "1",
       })
@@ -212,16 +209,20 @@ class Swapper {
   }
 
   private async buildParaswapTxData(
-    quote: any
+    quote: Quote
   ): Promise<ethers.providers.TransactionRequest> {
-    const txParams = await this.paraswapMin.swap.buildTx({
-      srcToken: quote.srcToken,
-      destToken: quote.destToken,
-      srcAmount: quote.srcAmount,
-      destAmount: quote.destAmount,
-      priceRoute: quote.priceRoute,
-      userAddress: this.signer.address,
-    });
+    const txParams = (
+      await axios.post(
+        `${ProtocolUrls.PARASWAP}/transactions/${ChainId.MAINNET}`,
+        {
+          srcToken: quote.sellToken.address,
+          destToken: quote.buyToken.address,
+          destAmount: quote.response.priceRoute.destAmount,
+          priceRoute: quote.response.priceRoute,
+          userAddress: this.signer.address,
+        }
+      )
+    ).data;
 
     return {
       ...txParams,

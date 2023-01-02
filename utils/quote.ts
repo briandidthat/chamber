@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { Quote } from "../lib/types";
 import { Token } from "../lib/types";
 
@@ -11,6 +12,7 @@ export enum LiquiditySource {
 export function buildQuote(
   sellToken: Token,
   buyToken: Token,
+  amount: BigNumber,
   liquiditySource: LiquiditySource,
   expectedOutput: string,
   response: any
@@ -18,6 +20,7 @@ export function buildQuote(
   return {
     sellToken,
     buyToken,
+    amount,
     liquiditySource,
     expectedOutput,
     response,
