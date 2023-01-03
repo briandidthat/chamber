@@ -2,7 +2,11 @@ import axios from "axios";
 import inquirer from "inquirer";
 import { ethers, BigNumber } from "ethers";
 import keyManager from "./KeyManager";
-import { Routers, erc20Abi } from "../utils/web3";
+import {
+  Routers,
+  getTokenAllowanceByProtocol,
+  increaseAllowance,
+} from "../utils";
 import { Quote, Token, Network } from "./types";
 import {
   fromBn,
@@ -14,6 +18,7 @@ import {
   getTokenPairDetails,
   getNetwork,
 } from "../utils";
+import { getTokenBalance } from "../utils/token";
 
 class Swapper {
   private network: Network;
@@ -255,27 +260,38 @@ class Swapper {
 
       if (!shouldExecute) return;
 
-      const allowance = await this.getTokenAllowanceByProtocol(bestQuote);
-      const balance = await this.getTokenBalance(bestQuote.sellToken.address);
+      const balance = await getTokenBalance(
+        bestQuote.sellToken.address,
+        this.signer
+      );
 
       if (balance < bestQuote.amount)
         throw new Error("Insufficient balance for swap");
-      if (allowance < bestQuote.amount) {
-        const { increaseAmount } = await inquirer.prompt([
-          {
-            name: "increaseApproval",
-            type: "list",
-            message: `Current approval is ${allowance.toString()}. Choose amount to increase it by.`,
-            choices: ["0", "1000", "10000", "100000", "infiniti"],
-          },
-        ]);
-        if (increaseAmount === "0") return;
 
-        const approve = await this.increaseAllowance(
-          bestQuote.sellToken.address,
-          Routers[bestQuote.liquiditySource],
-          increaseAmount
+      if (bestQuote.sellToken.symbol !== "ETH") {
+        const allowance = await getTokenAllowanceByProtocol(
+          bestQuote,
+          this.signer
         );
+
+        if (allowance < bestQuote.amount) {
+          const { increaseAmount } = await inquirer.prompt([
+            {
+              name: "increaseApproval",
+              type: "list",
+              message: `Current approval is ${allowance.toString()}. Choose amount to increase it by.`,
+              choices: ["0", "1000", "10000", "100000", "infiniti"],
+            },
+          ]);
+          if (increaseAmount === "0") return;
+
+          const approve = await increaseAllowance(
+            bestQuote.sellToken.address,
+            Routers[bestQuote.liquiditySource],
+            increaseAmount,
+            this.signer
+          );
+        }
       }
 
       const txRequest: ethers.providers.TransactionRequest =
@@ -286,82 +302,6 @@ class Swapper {
       return txResponse;
     } catch (err) {
       console.error(err);
-    }
-  }
-
-  async checkOneInchAllowance(token: Token) {
-    return axios
-      .get(
-        createQueryString(ProtocolUrls.ONE_INCH, "/approve/allowance", {
-          tokenAddress: token.address,
-          signer: this.signer.address,
-        })
-      )
-      .then((res) =>
-        ethers.utils.parseUnits(res.data.allowance, token.decimals)
-      );
-  }
-
-  async getTokenBalance(address: string): Promise<BigNumber> {
-    const token: ethers.Contract = new ethers.Contract(
-      address,
-      erc20Abi,
-      this.provider
-    );
-
-    const balance: BigNumber = await token.balanceOf(address);
-    return balance;
-  }
-
-  async increaseAllowance(
-    address: string,
-    spender: string,
-    amount: string
-  ): Promise<boolean> {
-    const token: ethers.Contract = new ethers.Contract(
-      address,
-      erc20Abi,
-      this.provider
-    );
-    const increased: boolean = await token
-      .connect(this.signer)
-      .approve(spender, amount);
-    return increased;
-  }
-
-  async getTokenAllowance(
-    address: string,
-    spender: string
-  ): Promise<BigNumber> {
-    const token: ethers.Contract = new ethers.Contract(
-      address,
-      erc20Abi,
-      this.provider
-    );
-
-    const allowance: BigNumber = await token.allowance(
-      this.signer.address,
-      spender
-    );
-    return allowance;
-  }
-
-  async getTokenAllowanceByProtocol(quote: Quote): Promise<BigNumber> {
-    switch (quote.liquiditySource) {
-      case LiquiditySource.ONE_INCH:
-        return await this.checkOneInchAllowance(quote.sellToken);
-      case LiquiditySource.ZERO_X:
-        return await this.getTokenAllowance(
-          quote.sellToken.address,
-          Routers[LiquiditySource.ZERO_X]
-        );
-      case LiquiditySource.PARASWAP:
-        return await this.getTokenAllowance(
-          quote.sellToken.address,
-          Routers[LiquiditySource.PARASWAP]
-        );
-      default:
-        throw new Error("Unsupported liquidity source");
     }
   }
 }
