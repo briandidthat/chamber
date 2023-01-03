@@ -104,7 +104,7 @@ export async function getTokenAllowanceByProtocol(
 ): Promise<BigNumber> {
   switch (quote.liquiditySource) {
     case LiquiditySource.ONE_INCH:
-      return await checkOneInchAllowance(quote.sellToken, signer.address);
+      return await checkOneInchAllowance(quote.sellToken, signer);
     case LiquiditySource.ZERO_X:
       return await getTokenAllowance(
         quote.sellToken.address,
