@@ -3,22 +3,22 @@ import inquirer from "inquirer";
 import { ethers, BigNumber } from "ethers";
 import keyManager from "./KeyManager";
 import {
+  ChainId,
   Routers,
-  getTokenAllowanceByProtocol,
-  increaseAllowance,
-} from "../utils";
-import { Quote, Token, Network } from "./types";
-import {
-  fromBn,
-  buildQuote,
-  createQueryString,
   ProtocolUrls,
   LiquiditySource,
-  ChainId,
-  getTokenPairDetails,
+  fromBn,
+  createQueryString,
   getNetwork,
+  increaseAllowance,
+  getTokenBalance,
+  getTokenPairDetails,
+  getTokenAllowanceByProtocol,
+  buildQuote,
+  buildOneInchTxData,
+  buildParaswapTxData,
 } from "../utils";
-import { getTokenBalance } from "../utils/token";
+import { Quote, Token, Network } from "./types";
 
 class Swapper {
   private network: Network;
@@ -190,53 +190,14 @@ class Swapper {
     return quotes[0];
   }
 
-  private async buildOneInchTxData(
-    quote: Quote
-  ): Promise<ethers.providers.TransactionRequest> {
-    const response = await axios.get(
-      createQueryString(ProtocolUrls.ONE_INCH, "/swap?", {
-        sellTokenAddress: quote.sellToken.address,
-        buyTokenAddress: quote.buyToken.address,
-        amount: quote.amount,
-        fromAddress: this.signer.address,
-        slippage: "1",
-      })
-    );
-    return response.data;
-  }
-
-  private async buildParaswapTxData(
-    quote: Quote
-  ): Promise<ethers.providers.TransactionRequest> {
-    const txParams = (
-      await axios.post(
-        `${ProtocolUrls.PARASWAP}/transactions/${ChainId.MAINNET}`,
-        {
-          srcToken: quote.sellToken.address,
-          destToken: quote.buyToken.address,
-          destAmount: quote.response.priceRoute.destAmount,
-          priceRoute: quote.response.priceRoute,
-          userAddress: this.signer.address,
-        }
-      )
-    ).data;
-
-    return {
-      ...txParams,
-      gasPrice: new BigNumber(txParams.gasPrice, "gwei").toString(),
-      gasLimit: new BigNumber(5000000, "gwei").toString(),
-      value: new BigNumber(txParams.value, "ether").toString(),
-    };
-  }
-
   private async buildSwapParams(
     quote: Quote
   ): Promise<ethers.providers.TransactionRequest> {
     switch (quote.liquiditySource) {
       case LiquiditySource.ONE_INCH:
-        return await this.buildOneInchTxData(quote);
+        return await buildOneInchTxData(quote, this.signer);
       case LiquiditySource.PARASWAP:
-        return await this.buildParaswapTxData(quote);
+        return await buildParaswapTxData(quote, this.signer);
       case LiquiditySource.ZERO_X:
         const { data, to, value, gasLimit, gasPrice } = quote.response;
         return { data, to, value, gasLimit, gasPrice };
@@ -280,7 +241,7 @@ class Swapper {
               name: "increaseApproval",
               type: "list",
               message: `Current approval is ${allowance.toString()}. Choose amount to increase it by.`,
-              choices: ["0", "1000", "10000", "100000", "infiniti"],
+              choices: ["0", "1000", "10000", "100000", "infinity"],
             },
           ]);
           if (increaseAmount === "0") return;
