@@ -1,8 +1,6 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
-import { Network, Token } from "../lib/types";
-import { tokens } from "./tokens.json";
+import { Network } from "../lib/types";
 import keyManager from "../lib/KeyManager";
-import { LiquiditySource } from "./quote";
 
 export enum ProtocolUrls {
   ZERO_X = "https://api.0x.org/swap/v1",
@@ -21,11 +19,6 @@ export enum ChainId {
   AVALANCHE = 43114,
 }
 
-export const Routers: Record<LiquiditySource, string> = {
-  [LiquiditySource.PARASWAP]: "0x216B4B4Ba9F3e719726886d34a177484278Bfcae",
-  [LiquiditySource.ONE_INCH]: "",
-  [LiquiditySource.ZERO_X]: "0xDef1C0ded9bec7F1a1670819833240f027b25EfF",
-}
 
 const NetworkDetails: Record<ChainId, Network> = {
   [ChainId.LOCALHOST]: {
@@ -121,51 +114,3 @@ export function fromBn(x: BigNumber, decimals: number = 18): string {
   ).toString();
   return result.replace(/.0$/, "");
 }
-
-const SUPPORTED_TOKENS: Record<ChainId, Token[]> = {
-  [ChainId.LOCALHOST]: tokens,
-  [ChainId.MAINNET]: tokens,
-  [ChainId.GOERLI]: [],
-  [ChainId.BSC]: [],
-  [ChainId.FANTOM]: [],
-  [ChainId.AVALANCHE]: [],
-  [ChainId.ARBITRUM]: [],
-  [ChainId.POLYGON]: [],
-};
-
-export const getTokenDetails = (symbol: string, chainId: ChainId): Token => {
-  const tokens = SUPPORTED_TOKENS[chainId];
-  for (let token of tokens) {
-    if (token.symbol === symbol) {
-      return token;
-    }
-  }
-  throw new Error(`${symbol} is not a supported token`);
-};
-
-export const getTokenPairDetails = (
-  sellToken: string,
-  buyToken: string,
-  chainId: ChainId
-): Token[] => {
-  const tokens = SUPPORTED_TOKENS[chainId];
-  let sellTokenDetails,
-    buyTokenDetails = undefined;
-
-  for (let token of tokens) {
-    if (token.symbol === sellToken) sellTokenDetails = token;
-    if (token.symbol === buyToken) buyTokenDetails = token;
-  }
-
-  if (sellTokenDetails === undefined || buyTokenDetails === undefined) {
-    throw new Error(`${sellToken} -> ${buyToken} is not a supported trade`);
-  }
-  return [sellTokenDetails, buyTokenDetails];
-};
-
-export const erc20Abi = [
-  "function balanceOf(address account) external view returns (uint256)",
-  "function transfer(address to, uint256 amount) external returns (bool)",
-  "function approve(address spender, uint256 amount) external returns (bool)",
-  "function allowance(address owner, address spender) external view returns (uint256)",
-];
