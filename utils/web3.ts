@@ -1,6 +1,8 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
 import { Network, Token } from "../lib/types";
 import { tokens } from "./tokens.json";
+import keyManager from "../lib/KeyManager";
+import { LiquiditySource } from "./quote";
 
 export enum ProtocolUrls {
   ZERO_X = "https://api.0x.org/swap/v1",
@@ -19,6 +21,12 @@ export enum ChainId {
   AVALANCHE = 43114,
 }
 
+export const Routers: Record<LiquiditySource, string> = {
+  [LiquiditySource.PARASWAP]: "0x216B4B4Ba9F3e719726886d34a177484278Bfcae",
+  [LiquiditySource.ONE_INCH]: "",
+  [LiquiditySource.ZERO_X]: "0xDef1C0ded9bec7F1a1670819833240f027b25EfF",
+}
+
 const NetworkDetails: Record<ChainId, Network> = {
   [ChainId.LOCALHOST]: {
     chainId: 0,
@@ -29,7 +37,7 @@ const NetworkDetails: Record<ChainId, Network> = {
   [ChainId.MAINNET]: {
     chainId: 1,
     name: "mainnet",
-    nodeUrl: "",
+    nodeUrl: keyManager.get("MAINNET_RPC_URL"),
     scanner: "https://etherscan.io",
   },
   [ChainId.GOERLI]: {
@@ -155,10 +163,9 @@ export const getTokenPairDetails = (
   return [sellTokenDetails, buyTokenDetails];
 };
 
-
 export const erc20Abi = [
   "function balanceOf(address account) external view returns (uint256)",
   "function transfer(address to, uint256 amount) external returns (bool)",
   "function approve(address spender, uint256 amount) external returns (bool)",
   "function allowance(address owner, address spender) external view returns (uint256)",
-]
+];

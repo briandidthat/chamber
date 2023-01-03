@@ -1,6 +1,5 @@
 import { BigNumber } from "ethers";
-import { Quote } from "../lib/types";
-import { Token } from "../lib/types";
+import { Quote, Token } from "../lib/types";
 
 export enum LiquiditySource {
   PARASWAP = "Paraswap",

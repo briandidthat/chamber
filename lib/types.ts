@@ -1,7 +1,7 @@
 // CONFIG TYPES
 
 import { BigNumber } from "ethers";
-import { ChainId } from "../utils";
+import { ChainId, LiquiditySource } from "../utils";
 
 export type KeyPair = {
   key: string;
@@ -40,7 +40,7 @@ export type Quote = {
   buyToken: Token;
   sellToken: Token;
   amount: BigNumber;
-  liquiditySource: string;
+  liquiditySource: LiquiditySource;
   expectedOutput: any;
   response: any;
 };
