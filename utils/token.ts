@@ -1,15 +1,16 @@
+import axios from "axios";
 import { BigNumber, ethers } from "ethers";
 import { tokens } from "./tokens.json";
 import { Quote, Token } from "../lib/types";
 import { LiquiditySource, Routers } from "./swap";
 import { ChainId, ProtocolUrls, createQueryString } from "./web3";
-import axios from "axios";
 
 export const erc20Abi = [
   "function balanceOf(address account) external view returns (uint256)",
-  "function transfer(address to, uint256 amount) external returns (bool)",
   "function approve(address spender, uint256 amount) external returns (bool)",
   "function allowance(address owner, address spender) external view returns (uint256)",
+  "function transfer(address to, uint256 amount) external returns (bool)",
+  "function transferFrom(address from, address to, uint256 amount) external returns (bool)",
 ];
 
 export const SUPPORTED_TOKENS: Record<ChainId, Token[]> = {
@@ -42,10 +43,10 @@ export const getTokenPairDetails = (
   let sellTokenDetails,
     buyTokenDetails = undefined;
 
-  for (let token of tokens) {
+  tokens.map((token) => {
     if (token.symbol === sellToken) sellTokenDetails = token;
     if (token.symbol === buyToken) buyTokenDetails = token;
-  }
+  });
 
   if (sellTokenDetails === undefined || buyTokenDetails === undefined) {
     throw new Error(`${sellToken} -> ${buyToken} is not a supported trade`);
@@ -54,14 +55,16 @@ export const getTokenPairDetails = (
 };
 
 async function getOneInchAllowance(token: Token, signer: ethers.Wallet) {
-  return axios
-    .get(
+  const response = (
+    await axios.get(
       createQueryString(ProtocolUrls.ONE_INCH, "/approve/allowance", {
         tokenAddress: token.address,
         signer: signer.address,
       })
     )
-    .then((res) => ethers.utils.parseUnits(res.data.allowance, token.decimals));
+  ).data;
+
+  return ethers.utils.parseUnits(response.allowance, token.decimals);
 }
 
 export async function getTokenAllowance(
@@ -102,7 +105,6 @@ export async function getTokenBalance(
   signer: ethers.Wallet
 ): Promise<BigNumber> {
   const token: ethers.Contract = new ethers.Contract(address, erc20Abi, signer);
-
   const balance: BigNumber = await token.balanceOf(address);
   return balance;
 }

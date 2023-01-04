@@ -230,10 +230,7 @@ class Swapper {
         throw new Error("Insufficient balance for swap");
 
       if (bestQuote.sellToken.symbol !== "ETH") {
-        const allowance = await getTokenAllowance(
-          bestQuote,
-          this.signer
-        );
+        const allowance = await getTokenAllowance(bestQuote, this.signer);
 
         if (allowance < bestQuote.amount) {
           const { increaseAmount } = await inquirer.prompt([
