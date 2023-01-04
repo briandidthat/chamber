@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import { Quote, Token } from "../lib/types";
 import { ChainId, ProtocolUrls, createQueryString } from "./web3";
 
@@ -20,7 +20,7 @@ export const Routers: Record<LiquiditySource, string> = {
 export function buildQuote(
   sellToken: Token,
   buyToken: Token,
-  amount: BigNumber,
+  amount: ethers.BigNumber,
   liquiditySource: LiquiditySource,
   expectedOutput: string,
   response: any
@@ -39,16 +39,18 @@ export async function buildOneInchTxData(
   quote: Quote,
   signer: ethers.Wallet
 ): Promise<ethers.providers.TransactionRequest> {
-  const response = await axios.get(
-    createQueryString(ProtocolUrls.ONE_INCH, "/swap?", {
-      sellTokenAddress: quote.sellToken.address,
-      buyTokenAddress: quote.buyToken.address,
-      amount: quote.amount,
-      fromAddress: signer.address,
-      slippage: "1",
-    })
-  );
-  return response.data;
+  const response = (
+    await axios.get(
+      createQueryString(ProtocolUrls.ONE_INCH, "/swap?", {
+        sellTokenAddress: quote.sellToken.address,
+        buyTokenAddress: quote.buyToken.address,
+        amount: quote.amount,
+        fromAddress: signer.address,
+        slippage: 1,
+      })
+    )
+  ).data;
+  return response.tx;
 }
 
 export async function buildParaswapTxData(
@@ -67,11 +69,5 @@ export async function buildParaswapTxData(
       }
     )
   ).data;
-
-  return {
-    ...txParams,
-    gasPrice: new BigNumber(txParams.gasPrice, "gwei").toString(),
-    gasLimit: new BigNumber(5000000, "gwei").toString(),
-    value: new BigNumber(txParams.value, "ether").toString(),
-  };
+  return txParams;
 }
