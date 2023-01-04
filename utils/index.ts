@@ -22,5 +22,4 @@ export {
   getTokenPairDetails,
   increaseAllowance,
   getTokenAllowance,
-  getTokenAllowanceByProtocol,
 } from "./token";

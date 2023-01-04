@@ -53,14 +53,35 @@ export const getTokenPairDetails = (
   return [sellTokenDetails, buyTokenDetails];
 };
 
-export async function getTokenBalance(
-  address: string,
+async function getOneInchAllowance(token: Token, signer: ethers.Wallet) {
+  return axios
+    .get(
+      createQueryString(ProtocolUrls.ONE_INCH, "/approve/allowance", {
+        tokenAddress: token.address,
+        signer: signer.address,
+      })
+    )
+    .then((res) => ethers.utils.parseUnits(res.data.allowance, token.decimals));
+}
+
+export async function getTokenAllowance(
+  quote: Quote,
   signer: ethers.Wallet
 ): Promise<BigNumber> {
-  const token: ethers.Contract = new ethers.Contract(address, erc20Abi, signer);
+  if (quote.liquiditySource === LiquiditySource.ONE_INCH) {
+    return await getOneInchAllowance(quote.sellToken, signer);
+  }
 
-  const balance: BigNumber = await token.balanceOf(address);
-  return balance;
+  const token: ethers.Contract = new ethers.Contract(
+    quote.sellToken.address,
+    erc20Abi,
+    signer
+  );
+  const allowance: BigNumber = await token.allowance(
+    signer.address,
+    Routers[quote.liquiditySource]
+  );
+  return allowance;
 }
 
 export async function increaseAllowance(
@@ -76,48 +97,12 @@ export async function increaseAllowance(
   return increased;
 }
 
-export async function getTokenAllowance(
+export async function getTokenBalance(
   address: string,
-  spender: string,
   signer: ethers.Wallet
 ): Promise<BigNumber> {
   const token: ethers.Contract = new ethers.Contract(address, erc20Abi, signer);
 
-  const allowance: BigNumber = await token.allowance(signer.address, spender);
-  return allowance;
-}
-
-async function checkOneInchAllowance(token: Token, signer: ethers.Wallet) {
-  return axios
-    .get(
-      createQueryString(ProtocolUrls.ONE_INCH, "/approve/allowance", {
-        tokenAddress: token.address,
-        signer: signer.address,
-      })
-    )
-    .then((res) => ethers.utils.parseUnits(res.data.allowance, token.decimals));
-}
-
-export async function getTokenAllowanceByProtocol(
-  quote: Quote,
-  signer: ethers.Wallet
-): Promise<BigNumber> {
-  switch (quote.liquiditySource) {
-    case LiquiditySource.ONE_INCH:
-      return await checkOneInchAllowance(quote.sellToken, signer);
-    case LiquiditySource.ZERO_X:
-      return await getTokenAllowance(
-        quote.sellToken.address,
-        Routers[LiquiditySource.ZERO_X],
-        signer
-      );
-    case LiquiditySource.PARASWAP:
-      return await getTokenAllowance(
-        quote.sellToken.address,
-        Routers[LiquiditySource.PARASWAP],
-        signer
-      );
-    default:
-      throw new Error("Unsupported liquidity source");
-  }
+  const balance: BigNumber = await token.balanceOf(address);
+  return balance;
 }

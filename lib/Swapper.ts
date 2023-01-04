@@ -12,8 +12,8 @@ import {
   getNetwork,
   increaseAllowance,
   getTokenBalance,
+  getTokenAllowance,
   getTokenPairDetails,
-  getTokenAllowanceByProtocol,
   buildQuote,
   buildOneInchTxData,
   buildParaswapTxData,
@@ -230,7 +230,7 @@ class Swapper {
         throw new Error("Insufficient balance for swap");
 
       if (bestQuote.sellToken.symbol !== "ETH") {
-        const allowance = await getTokenAllowanceByProtocol(
+        const allowance = await getTokenAllowance(
           bestQuote,
           this.signer
         );
