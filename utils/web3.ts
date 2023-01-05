@@ -19,7 +19,6 @@ export enum ChainId {
   AVALANCHE = 43114,
 }
 
-
 const NetworkDetails: Record<ChainId, Network> = {
   [ChainId.LOCALHOST]: {
     chainId: 0,
@@ -30,7 +29,7 @@ const NetworkDetails: Record<ChainId, Network> = {
   [ChainId.MAINNET]: {
     chainId: 1,
     name: "mainnet",
-    nodeUrl: keyManager.get("MAINNET_RPC_URL"),
+    nodeUrl: "https://eth.llamarpc.com",
     scanner: "https://etherscan.io",
   },
   [ChainId.GOERLI]: {

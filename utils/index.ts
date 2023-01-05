@@ -1,4 +1,4 @@
-// SWAP Utility Functions
+// SWAP Utils
 export {
   buildQuote,
   buildOneInchTxData,
@@ -6,7 +6,7 @@ export {
   LiquiditySource,
   Routers,
 } from "./swap";
-// WEB3 Utility Functions
+// WEB3 Utils
 export {
   ChainId,
   ProtocolUrls,
@@ -14,7 +14,7 @@ export {
   getNetwork,
   createQueryString,
 } from "./web3";
-// ERC20 Utility Functions
+// ERC20 Utils
 export {
   erc20Abi,
   getTokenDetails,
@@ -23,3 +23,5 @@ export {
   increaseAllowance,
   getTokenAllowance,
 } from "./token";
+// CONFIG Utils
+export { RequiredConfigVars } from "./config";

@@ -1,10 +1,12 @@
 import ConfigStore from "configstore";
 import * as pkg from "../package.json";
+import { RequiredConfigVars } from "../utils";
 
 class KeyManager {
   conf: ConfigStore;
   constructor() {
     this.conf = new ConfigStore(pkg.name);
+    this.populateInitialConfig();
   }
 
   set(key: string, value: string) {
@@ -35,6 +37,14 @@ class KeyManager {
 
   clear() {
     this.conf.clear();
+    this.populateInitialConfig();
+  }
+
+  private populateInitialConfig() {
+    // initialize config map with all necessary config vars
+    Object.keys(RequiredConfigVars)
+      .filter((key) => isNaN(Number(key)))
+      .map((key) => this.set(key, ""));
   }
 }
 
