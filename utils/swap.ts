@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ethers } from "ethers";
-import { Quote, Token } from "../lib/types";
-import { ChainId, ProtocolUrls, createQueryString } from "./web3";
+import { Network, Quote, Token } from "../lib/types";
+import { ProtocolUrls, createQueryString } from "./web3";
 
 export enum LiquiditySource {
   PARASWAP = "Paraswap",
@@ -39,7 +39,7 @@ export function buildQuote(
 
 export async function buildOneInchTxData(
   quote: Quote,
-  signer: ethers.Wallet
+  signer: string
 ): Promise<ethers.providers.TransactionRequest> {
   const response = (
     await axios.get(
@@ -47,7 +47,7 @@ export async function buildOneInchTxData(
         sellTokenAddress: quote.sellToken.address,
         buyTokenAddress: quote.buyToken.address,
         amount: quote.amount,
-        fromAddress: signer.address,
+        fromAddress: signer,
         slippage: 1,
       })
     )
@@ -57,18 +57,39 @@ export async function buildOneInchTxData(
 
 export async function buildParaswapTxData(
   quote: Quote,
-  signer: ethers.Wallet
+  signer: string,
+  network: Network
 ): Promise<ethers.providers.TransactionRequest> {
   const txParams = (
     await axios.post(
-      `${ProtocolUrls.PARASWAP}/transactions/${ChainId.MAINNET}`,
+      `${ProtocolUrls.PARASWAP}/transactions/${network.chainId}`,
       {
         srcToken: quote.sellToken.address,
         destToken: quote.buyToken.address,
-        destAmount: quote.response.priceRoute.destAmount,
+        destAmount: quote.expectedOutput,
         priceRoute: quote.response.priceRoute,
-        userAddress: signer.address,
+        userAddress: signer,
       }
+    )
+  ).data;
+  return txParams;
+}
+
+export async function buildOpenOceanTxData(
+  quote: Quote,
+  signer: string,
+  network: Network
+) {
+  const txParams = (
+    await axios.get(
+      createQueryString(ProtocolUrls.OPEN_OCEAN, `${network.name}/swap_quote`, {
+        inTokenAddress: quote.sellToken.address,
+        outTokenAddress: quote.buyToken.address,
+        amount: 5,
+        gasPrice: 5,
+        slippage: 100,
+        account: signer,
+      })
     )
   ).data;
   return txParams;
