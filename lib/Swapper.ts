@@ -1,7 +1,8 @@
 import axios from "axios";
+import colors from "colors";
 import inquirer from "inquirer";
 import { ethers, BigNumber } from "ethers";
-import keyManager from "./KeyManager";
+import KeyManager from "./KeyManager";
 import {
   ChainId,
   Routers,
@@ -29,7 +30,7 @@ class Swapper {
     this.network = getNetwork(chainId);
     this.provider = new ethers.providers.JsonRpcProvider(this.network.nodeUrl);
     this.signer = new ethers.Wallet(
-      keyManager.get("PRIVATE_KEY"),
+      KeyManager.get("PRIVATE_KEY"),
       this.provider
     );
   }
@@ -131,6 +132,37 @@ class Swapper {
     );
   }
 
+  private async fetchOpenOceanQuote(
+    sellToken: Token,
+    buyToken: Token,
+    amount: number
+  ) {
+    const response = (
+      await axios.get(
+        createQueryString(
+          ProtocolUrls.OPEN_OCEAN,
+          `/${this.network.name}/quote?`,
+          {
+            inTokenAddress: buyToken.address,
+            outTokenAddress: sellToken.address,
+            amount: amount,
+            gasPrice: 5,
+            slippage: 1,
+          }
+        )
+      )
+    ).data;
+
+    return buildQuote(
+      sellToken,
+      buyToken,
+      BigNumber.from(amount),
+      LiquiditySource.OPEN_OCEAN,
+      response.data.inAmount,
+      response
+    );
+  }
+
   private async fetchAllQuotesForSwap(
     sellToken: Token,
     buyToken: Token,
@@ -226,6 +258,8 @@ class Swapper {
         this.signer
       );
 
+      console.log(`Current ${sellToken} balance: ${balance.toString()}`.blue);
+
       if (balance < bestQuote.amount)
         throw new Error("Insufficient balance for swap");
 
@@ -233,30 +267,35 @@ class Swapper {
         const allowance = await getTokenAllowance(bestQuote, this.signer);
 
         if (allowance < bestQuote.amount) {
-          const { increaseAmount } = await inquirer.prompt([
+          const { increaseAllowanceAmount } = await inquirer.prompt([
             {
-              name: "increaseApproval",
+              name: "increaseAllowanceAmount",
               type: "list",
               message: `Current approval is ${allowance.toString()}. Choose amount to increase it by.`,
-              choices: ["0", "1000", "10000", "100000", "infinity"],
+              choices: [0, 1000, 10000, 100000, "max"],
             },
           ]);
-          if (increaseAmount === "0") return;
+
+          if (increaseAllowanceAmount === 0) return;
 
           const approve = await increaseAllowance(
             bestQuote.sellToken.address,
             Routers[bestQuote.liquiditySource],
-            increaseAmount,
+            BigNumber.from(increaseAllowanceAmount),
             this.signer
           );
         }
       }
 
+      console.log(
+        `Building swap params for ${bestQuote.liquiditySource}...`.blue
+      );
       const txRequest: ethers.providers.TransactionRequest =
         await this.buildSwapParams(bestQuote);
+      console.log("Attempting swap transaction...".blue);
       const txResponse: ethers.providers.TransactionResponse =
         await this.signer.sendTransaction(txRequest);
-
+      console.log(`Completed swap transaction. Hash: ${txResponse.hash}`.blue);
       return txResponse;
     } catch (err) {
       console.error(err);

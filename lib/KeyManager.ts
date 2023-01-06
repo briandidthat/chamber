@@ -3,18 +3,15 @@ import * as pkg from "../package.json";
 import { RequiredConfigVars } from "../utils";
 
 class KeyManager {
-  conf: ConfigStore;
-  constructor() {
-    this.conf = new ConfigStore(pkg.name);
-    this.populateInitialConfig();
-  }
+  static conf: ConfigStore = new ConfigStore(pkg.name);
+  static isInitialized: boolean = false;
 
-  set(key: string, value: string) {
+  static set(key: string, value: string) {
     this.conf.set(key, value);
     return key;
   }
 
-  get(key: string) {
+  static get(key: string) {
     const apiKey = this.conf.get(key);
     if (!apiKey) {
       throw new Error("No Key Found");
@@ -22,11 +19,11 @@ class KeyManager {
     return apiKey;
   }
 
-  getAll() {
+  static getAll() {
     return this.conf.all;
   }
 
-  remove(key: string) {
+  static remove(key: string) {
     const value: string = this.conf.get(key);
     if (!value) {
       throw new Error("No Key Found");
@@ -35,18 +32,22 @@ class KeyManager {
     return key;
   }
 
-  clear() {
+  static clear() {
     this.conf.clear();
+    this.isInitialized = false;
     this.populateInitialConfig();
   }
 
-  private populateInitialConfig() {
+  private static populateInitialConfig() {
+    if (this.isInitialized) {
+      return;
+    }
     // initialize config map with all necessary config vars
     Object.keys(RequiredConfigVars)
       .filter((key) => isNaN(Number(key)))
       .map((key) => this.set(key, ""));
+    this.isInitialized = true;
   }
 }
 
-const keyManager = new KeyManager();
-export default keyManager;
+export default KeyManager;
