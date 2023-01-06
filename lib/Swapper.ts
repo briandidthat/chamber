@@ -117,7 +117,7 @@ class Swapper {
           destToken: buyToken.address,
           amount: amount.toString(),
           side: "SELL",
-          network: ChainId.MAINNET,
+          network: this.network.chainId,
         })
       )
     ).data;
@@ -141,10 +141,10 @@ class Swapper {
       await axios.get(
         createQueryString(
           ProtocolUrls.OPEN_OCEAN,
-          `/${this.network.name}/quote?`,
+          `/${this.network.name}/quote`,
           {
-            inTokenAddress: buyToken.address,
-            outTokenAddress: sellToken.address,
+            inTokenAddress: sellToken.address,
+            outTokenAddress: buyToken.address,
             amount: amount,
             gasPrice: 5,
             slippage: 1,
@@ -152,13 +152,14 @@ class Swapper {
         )
       )
     ).data;
+    console.log(response);
 
     return buildQuote(
       sellToken,
       buyToken,
       BigNumber.from(amount),
       LiquiditySource.OPEN_OCEAN,
-      response.data.inAmount,
+      response.data.outAmount,
       response
     );
   }
@@ -166,13 +167,18 @@ class Swapper {
   private async fetchAllQuotesForSwap(
     sellToken: Token,
     buyToken: Token,
-    amount: BigNumber
+    amount: string
   ) {
     try {
+      const sellAmount: BigNumber = ethers.utils.parseUnits(
+        amount,
+        sellToken.decimals
+      );
       const quotes = await Promise.all([
-        this.fetchOxQuote(sellToken, buyToken, amount),
-        this.fetchOneInchQoute(sellToken, buyToken, amount),
-        this.fetchParaswapQoute(sellToken, buyToken, amount),
+        this.fetchOxQuote(sellToken, buyToken, sellAmount),
+        this.fetchOneInchQoute(sellToken, buyToken, sellAmount),
+        this.fetchParaswapQoute(sellToken, buyToken, sellAmount),
+        this.fetchOpenOceanQuote(sellToken, buyToken, Number(amount)),
       ]);
 
       return quotes;
@@ -198,15 +204,10 @@ class Swapper {
       ChainId.MAINNET
     );
 
-    const sellAmount: BigNumber = ethers.utils.parseUnits(
-      amount,
-      sellToken.decimals
-    );
-
     const quotes = await this.fetchAllQuotesForSwap(
       sellToken,
       buyToken,
-      sellAmount
+      amount
     );
 
     quotes.sort((a, b) => b.expectedOutput - a.expectedOutput);
