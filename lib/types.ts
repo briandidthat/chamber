@@ -1,7 +1,7 @@
-// CONFIG TYPES
-
 import { BigNumber } from "ethers";
 import { ChainId, LiquiditySource } from "../utils";
+
+// CONFIG TYPES
 
 export type KeyPair = {
   key: string;

@@ -20,6 +20,7 @@ import {
   buildParaswapTxData,
 } from "../utils";
 import { Quote, Token, Network } from "./types";
+import { buildOpenOceanTxData } from "../utils/swap";
 
 class Swapper {
   private network: Network;
@@ -35,15 +36,14 @@ class Swapper {
     );
   }
 
-  setSigner(signer: ethers.Wallet) {
-    this.signer = signer;
+  setSigner() {
+    this.signer = new ethers.Wallet(
+      KeyManager.get("PRIVATE_KEY"),
+      this.provider
+    );
   }
 
   setNetwork(chainId: ChainId) {
-    this.network = getNetwork(chainId);
-  }
-
-  setNewProvider(chainId: ChainId) {
     this.network = getNetwork(chainId);
     this.provider = new ethers.providers.JsonRpcProvider(this.network.nodeUrl);
   }
@@ -152,7 +152,6 @@ class Swapper {
         )
       )
     ).data;
-    console.log(response);
 
     return buildQuote(
       sellToken,
@@ -228,9 +227,19 @@ class Swapper {
   ): Promise<ethers.providers.TransactionRequest> {
     switch (quote.liquiditySource) {
       case LiquiditySource.ONE_INCH:
-        return await buildOneInchTxData(quote, this.signer);
+        return await buildOneInchTxData(quote, this.signer.address);
       case LiquiditySource.PARASWAP:
-        return await buildParaswapTxData(quote, this.signer);
+        return await buildParaswapTxData(
+          quote,
+          this.signer.address,
+          this.network
+        );
+      case LiquiditySource.OPEN_OCEAN:
+        return await buildOpenOceanTxData(
+          quote,
+          this.signer.address,
+          this.network
+        );
       case LiquiditySource.ZERO_X:
         const { data, to, value, gasLimit, gasPrice } = quote.response;
         return { data, to, value, gasLimit, gasPrice };
