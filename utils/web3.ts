@@ -28,7 +28,7 @@ const NetworkDetails: Record<ChainId, Network> = {
   },
   [ChainId.MAINNET]: {
     chainId: 1,
-    name: "mainnet",
+    name: "eth",
     nodeUrl: "https://eth.llamarpc.com",
     scanner: "https://etherscan.io",
   },
@@ -63,7 +63,7 @@ const NetworkDetails: Record<ChainId, Network> = {
     scanner: "https://arbiscan.io",
   },
   [ChainId.AVALANCHE]: {
-    name: "avalanche",
+    name: "avax",
     chainId: 43114,
     nodeUrl: "https://rpc.ankr.com/avalanche",
     scanner: "https://snowtrace.io",
