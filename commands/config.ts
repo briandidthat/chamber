@@ -1,20 +1,20 @@
-import keyManager from "../lib/KeyManager";
+import KeyManager from "../lib/KeyManager";
 
 const configCommands = {
   set(key: string, val: string) {
-    console.log(keyManager.set(key, val));
+    console.log(KeyManager.set(key, val));
   },
   get(key: string) {
-    console.log(keyManager.get(key));
+    console.log(KeyManager.get(key));
   },
   show() {
-    console.log(keyManager.getAll());
-  },  
+    console.log(KeyManager.getAll());
+  },
   remove(key: string) {
-    console.log(keyManager.remove(key));
+    console.log(KeyManager.remove(key));
   },
   clear() {
-    keyManager.clear();
+    KeyManager.clear();
     console.log("Config Cleared");
   },
 };

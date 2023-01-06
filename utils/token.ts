@@ -90,7 +90,7 @@ export async function getTokenAllowance(
 export async function increaseAllowance(
   address: string,
   spender: string,
-  amount: string,
+  amount: BigNumber,
   signer: ethers.Wallet
 ): Promise<boolean> {
   const token: ethers.Contract = new ethers.Contract(address, erc20Abi, signer);

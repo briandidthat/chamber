@@ -1,11 +1,11 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
 import { Network } from "../lib/types";
-import keyManager from "../lib/KeyManager";
 
 export enum ProtocolUrls {
   ZERO_X = "https://api.0x.org/swap/v1",
   ONE_INCH = "https://api.1inch.io/v5.0/1",
   PARASWAP = "https://apiv5.paraswap.io",
+  OPEN_OCEAN = "https://open-api.openocean.finance/v3",
 }
 
 export enum ChainId {
@@ -41,31 +41,31 @@ const NetworkDetails: Record<ChainId, Network> = {
   [ChainId.BSC]: {
     chainId: 56,
     name: "bsc",
-    nodeUrl: "",
+    nodeUrl: "https://rpc.ankr.com/bsc",
     scanner: "https://bscscan.com",
   },
   [ChainId.POLYGON]: {
     name: "polygon",
     chainId: 137,
-    nodeUrl: "",
+    nodeUrl: "https://polygon.llamarpc.com",
     scanner: "https://polygonscan.com",
   },
   [ChainId.FANTOM]: {
     name: "fantom",
     chainId: 250,
-    nodeUrl: "",
+    nodeUrl: "https://rpc.ankr.com/fantom",
     scanner: "https://ftmscan.com",
   },
   [ChainId.ARBITRUM]: {
     name: "arbitrum",
     chainId: 42161,
-    nodeUrl: "",
+    nodeUrl: "https://rpc.ankr.com/arbitrum",
     scanner: "https://arbiscan.io",
   },
   [ChainId.AVALANCHE]: {
     name: "avalanche",
     chainId: 43114,
-    nodeUrl: "",
+    nodeUrl: "https://rpc.ankr.com/avalanche",
     scanner: "https://snowtrace.io",
   },
 };

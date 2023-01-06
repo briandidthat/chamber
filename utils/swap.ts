@@ -7,6 +7,7 @@ export enum LiquiditySource {
   PARASWAP = "Paraswap",
   ZERO_X = "0x",
   ONE_INCH = "1inch",
+  OPEN_OCEAN = "OpenOcean",
 }
 
 // SWAP routers for erc20 swaps
@@ -14,6 +15,7 @@ export const Routers: Record<LiquiditySource, string> = {
   [LiquiditySource.ZERO_X]: "0xDef1C0ded9bec7F1a1670819833240f027b25EfF",
   [LiquiditySource.PARASWAP]: "0x216B4B4Ba9F3e719726886d34a177484278Bfcae",
   [LiquiditySource.ONE_INCH]: "",
+  [LiquiditySource.OPEN_OCEAN]: "0x6352a56caadc4f1e25cd6c75970fa768a3304e64",
 };
 
 // standardize shape of quote for ordering
