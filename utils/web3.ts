@@ -6,6 +6,7 @@ export enum ProtocolUrls {
   ONE_INCH = "https://api.1inch.io/v5.0/1",
   PARASWAP = "https://apiv5.paraswap.io",
   OPEN_OCEAN = "https://open-api.openocean.finance/v3",
+  COINBASE = "https://api.coinbase.com/v2"
 }
 
 export enum ChainId {
@@ -112,4 +113,11 @@ export function fromBn(x: BigNumber, decimals: number = 18): string {
     `fixed256x${decimals}`
   ).toString();
   return result.replace(/.0$/, "");
+}
+
+export function toCurrencyString(string: string) {
+  return Number(string).toLocaleString(
+    Intl.NumberFormat().resolvedOptions().locale,
+    { style: "currency", currency: "USD" }
+  );
 }

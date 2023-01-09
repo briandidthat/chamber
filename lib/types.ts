@@ -21,7 +21,7 @@ export type TickerList = {
 
 // WEB3 TYPES
 
-export interface Network {
+export type Network = {
   name: string;
   nodeUrl: string;
   scanner: string;

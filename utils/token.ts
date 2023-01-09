@@ -108,3 +108,12 @@ export async function getTokenBalance(
   const balance: BigNumber = await token.balanceOf(address);
   return balance;
 }
+
+// TOKEN PRICE FUNCTIONS
+
+export async function getSpotPrice(ticker: string): Promise<string> {
+  const response = (
+    await axios.get(`${ProtocolUrls.COINBASE}/prices/${ticker}-USD/spot`)
+  ).data;
+  return response.data.amount;
+}

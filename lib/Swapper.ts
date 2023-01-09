@@ -4,23 +4,25 @@ import inquirer from "inquirer";
 import { ethers, BigNumber } from "ethers";
 import KeyManager from "./KeyManager";
 import {
+  fromBn,
   ChainId,
   Routers,
+  getNetwork,
+  buildQuote,
+  getSpotPrice,
   ProtocolUrls,
   LiquiditySource,
-  fromBn,
-  createQueryString,
-  getNetwork,
-  increaseAllowance,
   getTokenBalance,
+  toCurrencyString,
+  createQueryString,
+  increaseAllowance,
   getTokenAllowance,
-  getTokenPairDetails,
-  buildQuote,
   buildOneInchTxData,
+  getTokenPairDetails,
   buildParaswapTxData,
+  buildOpenOceanTxData,
 } from "../utils";
 import { Quote, Token, Network } from "./types";
-import { buildOpenOceanTxData } from "../utils/swap";
 
 class Swapper {
   private network: Network;
@@ -193,14 +195,22 @@ class Swapper {
     buyTokenSymbol: string,
     amount: string
   ) {
-    console.log(
-      `Finding best quote for ${sellTokenSymbol} -> ${buyTokenSymbol} swap. Sell amount: ${amount.toLocaleLowerCase()}`
-    );
-
     const [sellToken, buyToken] = getTokenPairDetails(
       sellTokenSymbol,
       buyTokenSymbol,
-      ChainId.MAINNET
+      this.network.chainId
+    );
+
+    const [sellTokenUSD, buyTokenUSD] = await Promise.all([
+      getSpotPrice(sellToken.symbol),
+      getSpotPrice(buyToken.symbol),
+    ]);
+
+    console.log(`${sellToken.symbol} spot price: ${toCurrencyString(sellTokenUSD)}`.red);
+    console.log(`${buyToken.symbol} spot price: ${toCurrencyString(buyTokenUSD)}`.green);
+
+    console.log(
+      `Finding best quote for ${sellTokenSymbol} -> ${buyTokenSymbol} swap. Sell amount: ${amount}`
     );
 
     const quotes = await this.fetchAllQuotesForSwap(
@@ -294,6 +304,10 @@ class Swapper {
             BigNumber.from(increaseAllowanceAmount),
             this.signer
           );
+
+          if (!approve) {
+            throw new Error("Failed to increase approval.");
+          }
         }
       }
 

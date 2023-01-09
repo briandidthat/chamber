@@ -1,9 +1,9 @@
-import PriceFetcher from "../lib/Fetcher";
+import { getSpotPrice } from "../utils";
 
 const fetcher = {
   async getPrice(ticker: string) {
-    const response = await PriceFetcher.getPrice(ticker);
-    console.log(`${ticker} price in USD: ${response}`);
+    const response = await getSpotPrice(ticker);
+    console.log(`${ticker} spot price: ${response}`);
   },
 };
 
