@@ -43,7 +43,7 @@ export async function buildOneInchTxData(
 ): Promise<ethers.providers.TransactionRequest> {
   const response = (
     await axios.get(
-      createQueryString(ProtocolUrls.ONE_INCH, "/swap?", {
+      createQueryString(ProtocolUrls.ONE_INCH, "/swap", {
         sellTokenAddress: quote.sellToken.address,
         buyTokenAddress: quote.buyToken.address,
         amount: quote.amount,

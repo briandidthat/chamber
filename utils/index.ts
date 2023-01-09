@@ -1,10 +1,11 @@
 // SWAP Utils
 export {
+  Routers,
   buildQuote,
+  LiquiditySource,
   buildOneInchTxData,
   buildParaswapTxData,
-  LiquiditySource,
-  Routers,
+  buildOpenOceanTxData,
 } from "./swap";
 // WEB3 Utils
 export {
@@ -12,6 +13,7 @@ export {
   ProtocolUrls,
   fromBn,
   getNetwork,
+  toCurrencyString,
   createQueryString,
 } from "./web3";
 // ERC20 Utils
@@ -19,6 +21,7 @@ export {
   erc20Abi,
   getTokenDetails,
   getTokenBalance,
+  getSpotPrice,
   getTokenPairDetails,
   increaseAllowance,
   getTokenAllowance,
