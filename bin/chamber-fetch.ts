@@ -10,9 +10,4 @@ program
     tickers.forEach((ticker: string) => Fetcher.getPrice(ticker))
   );
 
-program
-  .command("balance")
-  .description("get the balance of the current signer")
-  .action(() => Fetcher.getBalance());
-
 program.parse(process.argv);
