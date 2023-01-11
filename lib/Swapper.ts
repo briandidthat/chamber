@@ -206,8 +206,12 @@ class Swapper {
       getSpotPrice(buyToken.symbol),
     ]);
 
-    console.log(`${sellToken.symbol} spot price: ${toCurrencyString(sellTokenUSD)}`.red);
-    console.log(`${buyToken.symbol} spot price: ${toCurrencyString(buyTokenUSD)}`.green);
+    console.log(
+      `${sellToken.symbol} spot price: ${toCurrencyString(sellTokenUSD)}`.red
+    );
+    console.log(
+      `${buyToken.symbol} spot price: ${toCurrencyString(buyTokenUSD)}`.green
+    );
 
     console.log(
       `Finding best quote for ${sellTokenSymbol} -> ${buyTokenSymbol} swap. Sell amount: ${amount}`
@@ -316,9 +320,11 @@ class Swapper {
       );
       const txRequest: ethers.providers.TransactionRequest =
         await this.buildSwapParams(bestQuote);
+
       console.log("Attempting swap transaction...".blue);
       const txResponse: ethers.providers.TransactionResponse =
         await this.signer.sendTransaction(txRequest);
+
       console.log(`Completed swap transaction. Hash: ${txResponse.hash}`.blue);
       return txResponse;
     } catch (err) {
