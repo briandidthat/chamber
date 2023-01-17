@@ -29,7 +29,6 @@
     "typescript": "^4.9.3"
   },
   "devDependencies": {
-    "@types/axios": "^0.14.0",
     "@types/configstore": "^6.0.0",
     "@types/inquirer": "^9.0.3",
     "@types/node": "^18.11.10"

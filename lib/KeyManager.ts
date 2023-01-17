@@ -13,7 +13,7 @@ class KeyManager {
 
   static get(key: string) {
     const apiKey = this.conf.get(key);
-    if (!apiKey) {
+    if (apiKey === undefined) {
       throw new Error("No Key Found");
     }
     return apiKey;
