@@ -87,6 +87,13 @@ export async function getTokenAllowance(
   return allowance;
 }
 
+/**
+ * @param address address of the token 
+ * @param spender address of the token spender we want to increase allowance for
+ * @param amount  amount of tokens we are looking to increase allowance by
+ * @param signer  owner of the tokens we are going to spend
+ * @returns Promise<boolean>
+ */
 export async function increaseAllowance(
   address: string,
   spender: string,
@@ -100,6 +107,12 @@ export async function increaseAllowance(
   return increased;
 }
 
+/**
+ * 
+ * @param address address of the token we want to inquire the balance for
+ * @param signer  owner of the tokens
+ * @returns Promise<BigNumber>
+ */
 export async function getTokenBalance(
   address: string,
   signer: ethers.Wallet

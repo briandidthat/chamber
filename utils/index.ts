@@ -26,5 +26,3 @@ export {
   increaseAllowance,
   getTokenAllowance,
 } from "./token";
-// CONFIG Utils
-export { RequiredConfigVars } from "./config";
