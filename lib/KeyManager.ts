@@ -1,9 +1,15 @@
 import ConfigStore from "configstore";
 import * as pkg from "../package.json";
-import { RequiredConfigVars } from "../utils";
+
+const defaultConfig = {
+  SIGNER: "SIGNER",
+  PRIVATE_KEY: "PRIVATE_KEY",
+  NETWORK: "NETWORK",
+}
 
 class KeyManager {
-  static conf: ConfigStore = new ConfigStore(pkg.name);
+  // initialize new Config store with default values
+  static conf: ConfigStore = new ConfigStore(pkg.name, defaultConfig);
   static isInitialized: boolean = false;
 
   static set(key: string, value: string) {
@@ -43,9 +49,7 @@ class KeyManager {
       return;
     }
     // initialize config map with all necessary config vars
-    Object.keys(RequiredConfigVars)
-      .filter((key) => isNaN(Number(key)))
-      .map((key) => this.set(key, ""));
+    this.conf.set(defaultConfig)
     this.isInitialized = true;
   }
 }
