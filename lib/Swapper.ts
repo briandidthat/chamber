@@ -295,7 +295,7 @@ class Swapper {
             {
               name: "increaseAllowanceAmount",
               type: "list",
-              message: `Current approval is ${allowance.toString()}. Choose amount to increase it by.`,
+              message: `Current allowance is ${allowance.toString()}. Choose amount to increase it by.`,
               choices: [0, 1000, 10000, 100000, "max"],
             },
           ]);
@@ -305,12 +305,12 @@ class Swapper {
           const approve = await increaseAllowance(
             bestQuote.sellToken.address,
             Routers[bestQuote.liquiditySource],
-            BigNumber.from(increaseAllowanceAmount),
+            BigNumber.from(increaseAllowanceAmount === "max" ? ethers.constants.MaxUint256 : increaseAllowanceAmount),
             this.signer
           );
 
           if (!approve) {
-            throw new Error("Failed to increase approval.");
+            throw new Error("Failed to increase allowance.");
           }
         }
       }
