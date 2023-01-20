@@ -38,10 +38,9 @@ export const getTokenPairDetails = (
   sellToken: string,
   buyToken: string,
   chainId: ChainId
-): Token[] => {
+): [Token, Token] => {
   const tokens = SUPPORTED_TOKENS[chainId];
-  let sellTokenDetails,
-    buyTokenDetails = undefined;
+  let sellTokenDetails, buyTokenDetails;
 
   tokens.map((token) => {
     if (token.symbol === sellToken) sellTokenDetails = token;
