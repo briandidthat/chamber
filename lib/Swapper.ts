@@ -223,6 +223,7 @@ class Swapper {
       amount
     );
 
+    // sort the quotes in ascending order by the expected output amount
     quotes.sort((a, b) => b.expectedOutput - a.expectedOutput);
     quotes.map((val, index) => {
       console.log(
@@ -321,7 +322,7 @@ class Swapper {
       const txRequest: ethers.providers.TransactionRequest =
         await this.buildSwapParams(bestQuote);
 
-      console.log("Attempting swap transaction...".blue);
+      console.log("Sending swap transaction...".blue);
       const txResponse: ethers.providers.TransactionResponse =
         await this.signer.sendTransaction(txRequest);
 

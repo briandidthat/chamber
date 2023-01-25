@@ -34,6 +34,13 @@ export const getTokenDetails = (symbol: string, chainId: ChainId): Token => {
   throw new Error(`${symbol} is not a supported token`);
 };
 
+/**
+ * 
+ * @param sellToken token we plan to sell
+ * @param buyToken  token we plan to buy
+ * @param chainId  chainId of network we are using
+ * @returns array containing the sellToken and buyToken details, respectively
+ */
 export const getTokenPairDetails = (
   sellToken: string,
   buyToken: string,
@@ -66,6 +73,11 @@ async function getOneInchAllowance(token: Token, signer: ethers.Wallet) {
   return ethers.utils.parseUnits(response.allowance, token.decimals);
 }
 
+/**
+ * @param quote swap quote containing the details for the swap
+ * @param signer owner of the tokens we are inquiring the allowance for
+ * @returns Promise
+ */
 export async function getTokenAllowance(
   quote: Quote,
   signer: ethers.Wallet
