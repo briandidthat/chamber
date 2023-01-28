@@ -4,13 +4,13 @@ import * as pkg from "../package.json";
 const defaultConfig = {
   SIGNER: "SIGNER",
   PRIVATE_KEY: "PRIVATE_KEY",
-  NETWORK: "NETWORK",
+  NETWORK: "eth",
 }
 
 class KeyManager {
   // initialize new Config store with default values
-  static conf: ConfigStore = new ConfigStore(pkg.name, defaultConfig);
-  static isInitialized: boolean = false;
+  private static conf: ConfigStore = new ConfigStore(pkg.name, defaultConfig);
+  private static isInitialized: boolean = false;
 
   static set(key: string, value: string) {
     this.conf.set(key, value);

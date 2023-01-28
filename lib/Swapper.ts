@@ -32,17 +32,17 @@ class Swapper {
   constructor(chainId: ChainId) {
     this.network = getNetwork(chainId);
     this.provider = new ethers.providers.JsonRpcProvider(this.network.nodeUrl);
-    this.signer = new ethers.Wallet(
-      KeyManager.get("PRIVATE_KEY"),
-      this.provider
-    );
-  }
-
-  setSigner() {
-    this.signer = new ethers.Wallet(
-      KeyManager.get("PRIVATE_KEY"),
-      this.provider
-    );
+    if (KeyManager.get("SIGNER") === "SIGNER") {
+      const wallet = ethers.Wallet.createRandom();
+      this.signer = wallet;
+      KeyManager.set("PRIVATE_KEY", wallet.privateKey);
+      KeyManager.set("SIGNER", wallet.address);
+    } else {
+      this.signer = new ethers.Wallet(
+        KeyManager.get("PRIVATE_KEY"),
+        this.provider
+      );
+    }
   }
 
   setNetwork(chainId: ChainId) {

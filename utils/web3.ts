@@ -1,4 +1,5 @@
 import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
+import { ethers } from "ethers";
 import { Network } from "../lib/types";
 
 export enum ProtocolUrls {
@@ -121,3 +122,4 @@ export function toCurrencyString(string: string) {
     { style: "currency", currency: "USD" }
   );
 }
+
