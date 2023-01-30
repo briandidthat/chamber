@@ -33,10 +33,14 @@ class Swapper {
     this.network = getNetwork(chainId);
     this.provider = new ethers.providers.JsonRpcProvider(this.network.nodeUrl);
     if (KeyManager.get("SIGNER") === "SIGNER") {
-      const wallet = ethers.Wallet.createRandom();
-      this.signer = wallet;
-      KeyManager.set("PRIVATE_KEY", wallet.privateKey);
-      KeyManager.set("SIGNER", wallet.address);
+      this.signer = ethers.Wallet.createRandom();
+      KeyManager.set("PRIVATE_KEY", this.signer.privateKey);
+      KeyManager.set("SIGNER", this.signer.address);
+
+      console.log("Initialized new wallet for transactions. Please copy this information");
+      console.log(`Wallet address: ${this.signer.address}`.cyan.bold);
+      console.log(`Private Key: ${this.signer.privateKey}`.cyan.bold);
+      console.log(`Mnemonic: ${this.signer.mnemonic.phrase}`.cyan.bold);
     } else {
       this.signer = new ethers.Wallet(
         KeyManager.get("PRIVATE_KEY"),
@@ -206,6 +210,8 @@ class Swapper {
       getSpotPrice(buyToken.symbol),
     ]);
 
+    console.log(`======== Fetching spot price for ${sellToken.symbol} and ${buyToken.symbol} ========`)
+
     console.log(
       `${sellToken.symbol} spot price: ${toCurrencyString(sellTokenUSD)}`.red
     );
@@ -214,7 +220,7 @@ class Swapper {
     );
 
     console.log(
-      `Finding best quote for ${sellTokenSymbol} -> ${buyTokenSymbol} swap. Sell amount: ${amount}`
+      `======== Finding best quote for ${sellTokenSymbol} -> ${buyTokenSymbol} swap. Sell amount: ${amount} ========`
     );
 
     const quotes = await this.fetchAllQuotesForSwap(
