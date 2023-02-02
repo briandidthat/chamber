@@ -1,4 +1,5 @@
 import ConfigStore from "configstore";
+import inquirer from "inquirer";
 import * as pkg from "../package.json";
 
 const defaultConfig = {
@@ -38,10 +39,23 @@ class KeyManager {
     return key;
   }
 
-  static clear() {
-    this.conf.clear();
-    this.isInitialized = false;
-    this.populateInitialConfig();
+  static async clear() {
+    const signer = this.conf.get("SIGNER");
+    if (signer !== "SIGNER") {
+      const { shouldClear } = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "shouldClear",
+          message: "There is a wallet configured. Would you like to delete it?"
+        }
+      ]);
+
+      if (shouldClear) {
+        this.conf.clear();
+        this.isInitialized = false;
+        this.populateInitialConfig();
+      }
+    }
   }
 
   private static populateInitialConfig() {
