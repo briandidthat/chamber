@@ -29,6 +29,6 @@ program
 program
   .command("clear")
   .description("clear all env entries")
-  .action(() => configCommands.clear());
+  .action(async () => await configCommands.clear());
 
 program.parse(process.argv);

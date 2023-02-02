@@ -13,8 +13,8 @@ const configCommands = {
   remove(key: string) {
     console.log(KeyManager.remove(key));
   },
-  clear() {
-    KeyManager.clear();
+  async clear() {
+    await KeyManager.clear();
     console.log("Config Cleared");
   },
 };
