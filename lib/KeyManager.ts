@@ -54,6 +54,8 @@ class KeyManager {
         this.conf.clear();
         this.isInitialized = false;
         this.populateInitialConfig();
+
+        console.log("Config Cleared");
       }
     }
   }

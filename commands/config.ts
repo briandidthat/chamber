@@ -15,7 +15,6 @@ const configCommands = {
   },
   async clear() {
     await KeyManager.clear();
-    console.log("Config Cleared");
   },
 };
 
