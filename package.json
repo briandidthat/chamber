@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/toogroovy/chamber.git"
+    "url": "git+https://github.com/briandidthat/chamber.git"
   },
-  "author": "toogroovy",
+  "author": "briandidthat",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/toogroovy/chamber/issues"
+    "url": "https://github.com/briandidthat/chamber/issues"
   },
-  "homepage": "https://github.com/toogroovy/chamber#readme",
+  "homepage": "https://github.com/briandidthat/chamber#readme",
   "dependencies": {
     "axios": "1.1.3",
     "colors": "1.4.0",
