@@ -1,5 +1,9 @@
 # chamber
-Command line interface to manage and swap ERC20 tokens
+Command line interface to manage and swap ERC20 tokens via several permissionless protocols. Upon installation, a wallet is created for you and the corresponding private key is provided. You can also provide any private to use the wallet of your choice. 
+
+To see all available commands, run ```sh chamber --help```
+
+Some example commands:
 
 ### How to see all current config variables
 ```sh
